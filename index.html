@@ -1,50 +1,101 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PanelVault - Comic Book Tracker & Reading Journal</title>
+  
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            comic: {
+              bg: '#0b0f19',
+              card: '#151c2c',
+              border: '#2a364f',
+              accent: '#ef4444',
+              gold: '#f59e0b',
+              blue: '#3b82f6',
+              purple: '#8b5cf6',
+              cyan: '#06b6d4'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Firebase v10 Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
   <style>
-    body { background-color: #0b0f19; color: #e2e8f0; font-family: system-ui, -apple-system, sans-serif; }
-    .glass-panel { background: rgba(22, 28, 45, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
-    .star-icon { font-size: 1.6rem; color: #334155; transition: all 0.15s ease; cursor: pointer; }
-    .star-icon:hover, .star-icon.active { color: #f59e0b; transform: scale(1.15); }
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+    }
+    .comic-title-font {
+      font-family: 'Bangers', cursive, Impact, sans-serif;
+      letter-spacing: 1px;
+    }
+    .comic-dots {
+      background-image: radial-gradient(rgba(239, 68, 68, 0.12) 1px, transparent 0);
+      background-size: 14px 14px;
+    }
+    .star-pick-btn {
+      cursor: pointer;
+      transition: transform 0.15s ease, color 0.15s ease;
+    }
+    .star-pick-btn:hover {
+      transform: scale(1.2);
+    }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #2a364f; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
   </style>
 </head>
-<body class="min-h-screen pb-12 custom-scrollbar">
+<body class="min-h-screen pb-12 comic-dots">
 
   <!-- Header -->
-  <header class="sticky top-0 z-40 glass-panel border-b border-slate-800 py-3 px-4 md:px-8 mb-6 shadow-2xl">
+  <header class="sticky top-0 z-40 bg-comic-card/95 backdrop-blur-md border-b border-comic-border py-3 px-4 md:px-8 mb-6 shadow-2xl">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
-        <div class="bg-gradient-to-tr from-amber-500 to-red-600 p-2.5 rounded-xl shadow-lg">
+        <div class="bg-gradient-to-tr from-comic-accent to-comic-gold p-2.5 rounded-xl shadow-lg border border-red-500/30">
           <i class="fa-solid fa-book-open text-xl text-white"></i>
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-black text-xl tracking-tight text-white uppercase italic">PanelVault</h1>
-            <span id="sync-status" class="text-xs px-2.5 py-0.5 rounded-full bg-red-950 text-red-400 border border-red-800 font-medium">
+            <h1 class="font-black text-2xl tracking-tight text-white comic-title-font uppercase">PANEL<span class="text-comic-accent">VAULT</span></h1>
+            <span id="sync-status" class="text-xs px-2.5 py-0.5 rounded-full bg-red-950/80 text-red-400 border border-red-800 font-medium">
               <i class="fa-solid fa-circle text-[8px] mr-1"></i>Offline Mode
             </span>
           </div>
-          <p class="text-xs text-slate-400">Realtime Comic Book Journal & Cloud Sync</p>
+          <p class="text-xs text-slate-400">Comic Book Journal, Synopsis & Cloud Sync</p>
         </div>
       </div>
 
       <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
         <div id="auth-container">
           <button id="login-btn" onclick="signInUser()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-700 flex items-center gap-2 transition">
-            <i class="fa-brands fa-google text-amber-400"></i> Sign in with Google
+            <i class="fa-brands fa-google text-comic-gold"></i> Sign in with Google
           </button>
         </div>
 
         <button onclick="openBackupModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-cloud-arrow-down text-sky-400"></i> Backup & Tools
+          <i class="fa-solid fa-cloud-arrow-down text-comic-blue"></i> Backup & Tools
         </button>
         <button onclick="openComicModal()" class="bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-lg flex items-center gap-1.5 transition">
           <i class="fa-solid fa-plus"></i> Log Comic
@@ -60,16 +111,16 @@
     <div id="stats-dashboard" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
 
     <!-- Controls Bar -->
-    <div class="glass-panel p-3.5 rounded-xl mb-6 flex flex-wrap items-center justify-between gap-3 shadow-lg">
+    <div class="bg-comic-card border border-comic-border p-3.5 rounded-xl mb-6 flex flex-wrap items-center justify-between gap-3 shadow-lg">
       <div class="flex-1 min-w-[220px]">
         <div class="relative">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-          <input type="text" id="search-input" oninput="renderVault()" placeholder="Search title, issue, synopsis, writer, artist..." class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500">
+          <input type="text" id="search-input" oninput="renderVault()" placeholder="Search title, issue, synopsis, writer, artist..." class="w-full pl-9 pr-3 py-2 bg-comic-bg border border-comic-border rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-comic-accent">
         </div>
       </div>
 
       <div class="flex items-center flex-wrap gap-2">
-        <select id="publisher-filter" onchange="renderVault()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-amber-500">
+        <select id="publisher-filter" onchange="renderVault()" class="bg-comic-bg border border-comic-border text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-comic-accent">
           <option value="ALL">All Publishers</option>
           <option value="Marvel">Marvel</option>
           <option value="DC">DC Comics</option>
@@ -79,37 +130,37 @@
           <option value="Indie">Indie / Other</option>
         </select>
 
-        <select id="rating-filter" onchange="renderVault()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-amber-500">
+        <select id="rating-filter" onchange="renderVault()" class="bg-comic-bg border border-comic-border text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-comic-accent">
           <option value="ALL">All Ratings</option>
           <option value="5">5 Stars</option>
           <option value="4">4+ Stars</option>
           <option value="3">3+ Stars</option>
         </select>
 
-        <select id="sort-select" onchange="renderVault()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-amber-500">
+        <select id="sort-select" onchange="renderVault()" class="bg-comic-bg border border-comic-border text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-comic-accent">
           <option value="NEWEST">Recently Logged</option>
           <option value="RATING_DESC">Highest Rated</option>
           <option value="RATING_ASC">Lowest Rated</option>
           <option value="TITLE">Title (A-Z)</option>
         </select>
 
-        <div class="flex bg-slate-900 border border-slate-700 rounded-lg p-0.5 ml-1">
-          <button id="view-grid-btn" onclick="setViewMode('GRID')" class="px-2.5 py-1 rounded text-xs bg-amber-500 text-slate-950 font-bold"><i class="fa-solid fa-border-all"></i></button>
+        <div class="flex bg-comic-bg border border-comic-border rounded-lg p-0.5 ml-1">
+          <button id="view-grid-btn" onclick="setViewMode('GRID')" class="px-2.5 py-1 rounded text-xs bg-comic-gold text-slate-950 font-bold"><i class="fa-solid fa-border-all"></i></button>
           <button id="view-list-btn" onclick="setViewMode('LIST')" class="px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-list"></i></button>
         </div>
       </div>
     </div>
 
-    <!-- Vault Grid / List Output -->
+    <!-- Vault Output -->
     <div id="comic-container"></div>
   </main>
 
   <!-- Log / Edit Comic Modal -->
   <div id="comic-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
-    <div class="glass-panel w-full max-w-2xl rounded-2xl border border-slate-700 shadow-2xl p-6 my-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
-        <h2 id="modal-title" class="text-lg font-black tracking-tight text-white uppercase italic flex items-center gap-2">
-          <i class="fa-solid fa-pen-to-square text-amber-500"></i> Log New Comic Issue
+    <div class="bg-comic-card w-full max-w-2xl rounded-2xl border border-comic-border shadow-2xl p-6 my-8 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-comic-border pb-4 mb-4">
+        <h2 id="modal-title" class="text-xl font-black tracking-tight text-white comic-title-font uppercase flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-comic-accent"></i> Log New Comic Issue
         </h2>
         <button onclick="closeComicModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -120,15 +171,15 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div class="md:col-span-2">
             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Comic Title *</label>
-            <input type="text" id="input-title" required placeholder="e.g., Captain America, Saga" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+            <input type="text" id="input-title" required placeholder="e.g., Captain America, Saga" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Publisher *</label>
-            <select id="input-publisher" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
-              <option value="Marvel">Marvel Comics</option>
+            <select id="input-publisher" required class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
+              <option value="Marvel">Marvel</option>
               <option value="DC">DC Comics</option>
               <option value="Image">Image Comics</option>
-              <option value="IDW">IDW Publishing</option>
+              <option value="IDW">IDW</option>
               <option value="Boom">BOOM! Studios</option>
               <option value="Indie">Indie / Self-Published</option>
             </select>
@@ -138,82 +189,82 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Issue # *</label>
-            <input type="text" id="input-issue" required placeholder="e.g., #1, #300" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+            <input type="text" id="input-issue" required placeholder="e.g., #1, #300" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Volume / Year</label>
-            <input type="text" id="input-volume" placeholder="e.g., Vol 1, 1988" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+            <input type="text" id="input-volume" placeholder="e.g., Vol 1, 1988" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Writer(s)</label>
-            <input type="text" id="input-writer" placeholder="e.g., Mark Waid" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+            <input type="text" id="input-writer" placeholder="e.g., Mark Waid" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Artist(s)</label>
-            <input type="text" id="input-artist" placeholder="e.g., Alex Ross" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
+            <input type="text" id="input-artist" placeholder="e.g., Alex Ross" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
           </div>
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Cover Image URL or File Upload</label>
           <div class="flex gap-2">
-            <input type="text" id="input-cover" placeholder="Paste image URL (https://...)" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500">
-            <label class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer flex items-center gap-1.5">
-              <i class="fa-solid fa-upload text-amber-400"></i> Upload
+            <input type="text" id="input-cover" placeholder="Paste image URL (https://...)" class="flex-1 bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
+            <label class="bg-slate-800 hover:bg-slate-700 border border-comic-border text-slate-300 text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer flex items-center gap-1.5">
+              <i class="fa-solid fa-upload text-comic-blue"></i> Upload
               <input type="file" id="input-cover-file" accept="image/*" onchange="handleFileUpload(event)" class="hidden">
             </label>
           </div>
         </div>
 
         <!-- Rating Breakdown Panel -->
-        <div class="bg-slate-900/90 border border-slate-800 p-4 rounded-xl space-y-3">
-          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+        <div class="bg-slate-900/90 border border-comic-border p-4 rounded-xl space-y-3">
+          <div class="flex items-center justify-between border-b border-comic-border pb-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-comic-gold flex items-center gap-1.5">
               <i class="fa-solid fa-star"></i> Review Ratings Breakdown
             </span>
             <div class="text-xs bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
-              Calculated Overall: <span id="overall-preview" class="font-bold text-amber-400 text-sm">5.0 ★</span>
+              Calculated Overall: <span id="overall-preview" class="font-bold text-comic-gold text-sm">5.0 ★</span>
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-            <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800 text-center">
+            <div class="bg-comic-bg p-3 rounded-lg border border-comic-border text-center">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-slate-300">🎨 Cover</span>
-                <span id="score-cover" class="text-xs font-bold text-amber-400">5.0 / 5</span>
+                <span class="text-xs font-bold text-pink-400">🎨 Cover</span>
+                <span id="score-cover" class="text-xs font-bold text-comic-gold">5.0 / 5</span>
               </div>
-              <div id="stars-cover" class="flex justify-center gap-1"></div>
+              <div id="stars-cover" class="flex justify-center gap-1.5"></div>
             </div>
 
-            <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800 text-center">
+            <div class="bg-comic-bg p-3 rounded-lg border border-comic-border text-center">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-slate-300">✏️ Interior Art</span>
-                <span id="score-art" class="text-xs font-bold text-amber-400">5.0 / 5</span>
+                <span class="text-xs font-bold text-blue-400">✏️ Interior Art</span>
+                <span id="score-art" class="text-xs font-bold text-comic-gold">5.0 / 5</span>
               </div>
-              <div id="stars-art" class="flex justify-center gap-1"></div>
+              <div id="stars-art" class="flex justify-center gap-1.5"></div>
             </div>
 
-            <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800 text-center">
+            <div class="bg-comic-bg p-3 rounded-lg border border-comic-border text-center">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-slate-300">📖 Story</span>
-                <span id="score-story" class="text-xs font-bold text-amber-400">5.0 / 5</span>
+                <span class="text-xs font-bold text-emerald-400">📖 Story</span>
+                <span id="score-story" class="text-xs font-bold text-comic-gold">5.0 / 5</span>
               </div>
-              <div id="stars-story" class="flex justify-center gap-1"></div>
+              <div id="stars-story" class="flex justify-center gap-1.5"></div>
             </div>
           </div>
         </div>
 
         <div>
           <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Personal Synopsis & Review Notes</label>
-          <textarea id="input-synopsis" rows="3" placeholder="Write your personal recap, key plot points, character arcs, or thoughts on this issue..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-amber-500"></textarea>
+          <textarea id="input-synopsis" rows="3" placeholder="Write your personal recap, key plot points, character arcs, or thoughts on this issue..." class="w-full bg-comic-bg border border-comic-border rounded-lg p-3 text-sm text-white focus:outline-none focus:border-comic-accent"></textarea>
         </div>
 
         <div class="flex items-center gap-2 pt-1">
-          <input type="checkbox" id="input-key" class="w-4 h-4 rounded accent-amber-500">
-          <label for="input-key" class="text-xs font-medium text-slate-300">Mark as Key Issue (First appearance, iconic cover, death, major event)</label>
+          <input type="checkbox" id="input-key" class="w-4 h-4 rounded accent-comic-accent">
+          <label for="input-key" class="text-xs font-medium text-slate-300 select-none cursor-pointer">Mark as Key Issue (First appearance, iconic cover, death, major event)</label>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-comic-border">
           <button type="button" onclick="closeComicModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg">Cancel</button>
           <button type="submit" class="px-5 py-2 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white text-xs font-bold rounded-lg shadow-lg">Save To Vault</button>
         </div>
@@ -223,14 +274,14 @@
 
   <!-- Comic Detail Modal -->
   <div id="detail-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 overflow-y-auto">
-    <div class="glass-panel w-full max-w-3xl rounded-2xl border border-slate-700 shadow-2xl p-6 my-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <div class="bg-comic-card w-full max-w-3xl rounded-2xl border border-comic-border shadow-2xl p-6 my-8 max-h-[90vh] overflow-y-auto">
       <div id="detail-content"></div>
     </div>
   </div>
 
   <!-- Delete Confirmation Modal -->
   <div id="delete-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-    <div class="glass-panel w-full max-w-md rounded-2xl border border-red-900/50 shadow-2xl p-6 text-center">
+    <div class="bg-comic-card w-full max-w-md rounded-2xl border border-red-900/50 shadow-2xl p-6 text-center">
       <div class="w-12 h-12 bg-red-950/80 border border-red-800 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
         <i class="fa-solid fa-trash-can"></i>
       </div>
@@ -245,35 +296,35 @@
 
   <!-- Backup & Tools Modal -->
   <div id="backup-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-    <div class="glass-panel w-full max-w-lg rounded-2xl border border-slate-700 shadow-2xl p-6">
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+    <div class="bg-comic-card w-full max-w-lg rounded-2xl border border-comic-border shadow-2xl p-6">
+      <div class="flex items-center justify-between border-b border-comic-border pb-3 mb-4">
         <h3 class="text-base font-bold text-white flex items-center gap-2">
-          <i class="fa-solid fa-database text-sky-400"></i> Backup & Data Tools
+          <i class="fa-solid fa-database text-comic-blue"></i> Backup & Data Tools
         </h3>
         <button onclick="closeBackupModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="space-y-3">
-        <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div class="p-3 bg-comic-bg rounded-xl border border-comic-border flex items-center justify-between">
           <div>
             <h4 class="text-xs font-bold text-white">Export JSON Backup</h4>
             <p class="text-[11px] text-slate-400">Download full collection data with ratings & reviews</p>
           </div>
-          <button onclick="exportJSON()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 text-xs font-bold rounded-lg border border-slate-700"><i class="fa-solid fa-download mr-1"></i> JSON</button>
+          <button onclick="exportJSON()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-comic-gold text-xs font-bold rounded-lg border border-slate-700"><i class="fa-solid fa-download mr-1"></i> JSON</button>
         </div>
 
-        <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div class="p-3 bg-comic-bg rounded-xl border border-comic-border flex items-center justify-between">
           <div>
             <h4 class="text-xs font-bold text-white">Import JSON Backup</h4>
             <p class="text-[11px] text-slate-400">Restore or load library from JSON backup file</p>
           </div>
-          <label class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-bold rounded-lg border border-slate-700 cursor-pointer">
+          <label class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-comic-blue text-xs font-bold rounded-lg border border-slate-700 cursor-pointer">
             <i class="fa-solid fa-upload mr-1"></i> Import
             <input type="file" accept=".json" onchange="importJSON(event)" class="hidden">
           </label>
         </div>
 
-        <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+        <div class="p-3 bg-comic-bg rounded-xl border border-comic-border flex items-center justify-between">
           <div>
             <h4 class="text-xs font-bold text-white">Export CSV Spreadsheet</h4>
             <p class="text-[11px] text-slate-400">Download formatted CSV for Excel / Google Sheets</p>
@@ -281,7 +332,7 @@
           <button onclick="exportCSV()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold rounded-lg border border-slate-700"><i class="fa-solid fa-file-csv mr-1"></i> CSV</button>
         </div>
 
-        <div class="pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+        <div class="pt-3 border-t border-comic-border flex items-center justify-between gap-2">
           <button onclick="restoreDefaults()" class="text-xs text-slate-400 hover:text-white underline">Restore Sample Library</button>
           <button onclick="clearAllData()" class="text-xs text-red-400 hover:text-red-300 font-semibold"><i class="fa-solid fa-trash mr-1"></i> Clear All Data</button>
         </div>
@@ -289,34 +340,13 @@
     </div>
   </div>
 
-  <!-- Firebase Integration -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCkQlrIZNulCIySAu-XTozRLI4xjGjMXNI",
-      authDomain: "panalvault.firebaseapp.com",
-      databaseURL: "https://panalvault-default-rtdb.firebaseio.com",
-      projectId: "panalvault",
-      storageBucket: "panalvault.firebasestorage.app",
-      messagingSenderId: "360997151189",
-      appId: "1:360997151189:web:5355bfe23a8148bee49d5c",
-      measurementId: "G-86JSF55T1J"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-    const provider = new GoogleAuthProvider();
-
+  <!-- Main JavaScript Logic -->
+  <script>
+    // --- GLOBAL VARIABLES & STATE ---
     let currentUser = null;
     let vaultComics = [];
     let pendingDeleteId = null;
     let currentViewMode = 'GRID';
-
-    // Rating state
     let formRatings = { cover: 5, art: 5, story: 5 };
 
     const SAMPLE_COMICS = [
@@ -373,60 +403,36 @@
       }
     ];
 
-    // Expose functions to window
-    window.signInUser = async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (err) {
-        alert("Sign-in failed: " + err.message + "\nEnsure lordfarmquads.github.io is added to Authorized Domains in Firebase Console.");
-      }
+    // --- FIREBASE INITIALIZATION ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkQlrIZNulCIySAu-XTozRLI4xjGjMXNI",
+      authDomain: "panalvault.firebaseapp.com",
+      databaseURL: "https://panalvault-default-rtdb.firebaseio.com",
+      projectId: "panalvault",
+      storageBucket: "panalvault.firebasestorage.app",
+      messagingSenderId: "360997151189",
+      appId: "1:360997151189:web:5355bfe23a8148bee49d5c",
+      measurementId: "G-86JSF55T1J"
     };
 
-    window.signOutUser = () => signOut(auth);
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const provider = new firebase.auth.GoogleAuthProvider();
 
-    onAuthStateChanged(auth, (user) => {
-      const statusEl = document.getElementById('sync-status');
-      const authContainer = document.getElementById('auth-container');
+    // --- FUNCTION DECLARATIONS (ASSIGNED TO WINDOW) ---
 
-      if (user) {
-        currentUser = user;
-        statusEl.className = "text-xs px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-medium";
-        statusEl.innerHTML = `<i class="fa-solid fa-circle text-[8px] mr-1"></i>Online / Synced`;
+    window.signInUser = function() {
+      auth.signInWithPopup(provider).catch(function(err) {
+        alert("Sign-in failed: " + err.message + "\nEnsure lordfarmquads.github.io is added to Authorized Domains in Firebase Console.");
+      });
+    };
 
-        authContainer.innerHTML = `
-          <div class="flex items-center gap-2 bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-slate-700">
-            <img src="${user.photoURL || 'https://via.placeholder.com/20'}" class="w-5 h-5 rounded-full border border-amber-500">
-            <span class="text-xs text-slate-200 font-medium hidden md:inline">${user.displayName || 'Collector'}</span>
-            <button onclick="signOutUser()" class="text-xs text-slate-400 hover:text-red-400 ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>
-          </div>
-        `;
-
-        // Listen to User Path in Database
-        const userRef = ref(db, `users/${user.uid}/comics`);
-        onValue(userRef, (snapshot) => {
-          const data = snapshot.val();
-          if (data !== null) {
-            vaultComics = Array.isArray(data) ? data : Object.values(data);
-          } else {
-            // First time cloud setup
-            vaultComics = getLocalComics();
-            saveComicsToStorage(vaultComics);
-          }
-          renderVault();
-        });
-      } else {
-        currentUser = null;
-        statusEl.className = "text-xs px-2.5 py-0.5 rounded-full bg-red-950 text-red-400 border border-red-800 font-medium";
-        statusEl.innerHTML = `<i class="fa-solid fa-circle text-[8px] mr-1"></i>Offline Mode`;
-        authContainer.innerHTML = `
-          <button onclick="signInUser()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-700 flex items-center gap-2 transition">
-            <i class="fa-brands fa-google text-amber-400"></i> Sign in with Google
-          </button>
-        `;
-        vaultComics = getLocalComics();
-        renderVault();
-      }
-    });
+    window.signOutUser = function() {
+      auth.signOut();
+    };
 
     function getLocalComics() {
       const stored = localStorage.getItem('panelvault_comics_v3');
@@ -441,39 +447,46 @@
       vaultComics = comics;
       localStorage.setItem('panelvault_comics_v3', JSON.stringify(comics));
       if (currentUser) {
-        set(ref(db, `users/${currentUser.uid}/comics`), comics);
+        db.ref('users/' + currentUser.uid + '/comics').set(comics);
       }
-      renderVault();
+      window.renderVault();
     }
 
-    window.setRating = (category, val) => {
+    window.setRating = function(category, val) {
       formRatings[category] = val;
       updateRatingUI();
     };
 
     function updateRatingUI() {
-      ['cover', 'art', 'story'].forEach(cat => {
+      ['cover', 'art', 'story'].forEach(function(cat) {
         const val = formRatings[cat];
-        document.getElementById(`score-${cat}`).textContent = `${val}.0 / 5`;
-        const container = document.getElementById(`stars-${cat}`);
-        container.innerHTML = [1,2,3,4,5].map(star => `
-          <i class="fa-solid fa-star star-icon ${star <= val ? 'active' : ''}" onclick="setRating('${cat}', ${star})"></i>
-        `).join('');
+        const scoreEl = document.getElementById('score-' + cat);
+        if (scoreEl) scoreEl.textContent = val + '.0 / 5';
+        
+        const container = document.getElementById('stars-' + cat);
+        if (container) {
+          container.innerHTML = [1,2,3,4,5].map(function(star) {
+            const isFilled = star <= val;
+            return '<i class="fa-solid fa-star star-pick-btn text-xl ' + (isFilled ? 'text-comic-gold' : 'text-slate-700') + '" onclick="setRating(\'' + cat + '\', ' + star + ')"></i>';
+          }).join('');
+        }
       });
 
       const overall = ((formRatings.cover + formRatings.art + formRatings.story) / 3).toFixed(1);
-      document.getElementById('overall-preview').textContent = `${overall} ★`;
+      const overallEl = document.getElementById('overall-preview');
+      if (overallEl) overallEl.textContent = overall + ' ★';
     }
 
-    window.openComicModal = (editId = null) => {
-      document.getElementById('comic-form').reset();
+    window.openComicModal = function(editId) {
+      const form = document.getElementById('comic-form');
+      if (form) form.reset();
       document.getElementById('edit-id').value = '';
       formRatings = { cover: 5, art: 5, story: 5 };
 
       if (editId) {
-        const comic = vaultComics.find(c => c.id === editId);
+        const comic = vaultComics.find(function(c) { return c.id === editId; });
         if (comic) {
-          document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i> Edit Comic Issue`;
+          document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-comic-accent"></i> Edit Comic Issue';
           document.getElementById('edit-id').value = comic.id;
           document.getElementById('input-title').value = comic.title || '';
           document.getElementById('input-publisher').value = comic.publisher || 'Marvel';
@@ -491,27 +504,29 @@
           };
         }
       } else {
-        document.getElementById('modal-title').innerHTML = `<i class="fa-solid fa-plus text-amber-500"></i> Log New Comic Issue`;
+        document.getElementById('modal-title').innerHTML = '<i class="fa-solid fa-plus text-comic-accent"></i> Log New Comic Issue';
       }
 
       updateRatingUI();
       document.getElementById('comic-modal').classList.remove('hidden');
     };
 
-    window.closeComicModal = () => document.getElementById('comic-modal').classList.add('hidden');
+    window.closeComicModal = function() {
+      document.getElementById('comic-modal').classList.add('hidden');
+    };
 
-    window.handleFileUpload = (e) => {
+    window.handleFileUpload = function(e) {
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = function(event) {
           document.getElementById('input-cover').value = event.target.result;
         };
         reader.readAsDataURL(file);
       }
     };
 
-    window.saveComic = (e) => {
+    window.saveComic = function(e) {
       e.preventDefault();
       const editId = document.getElementById('edit-id').value;
       const overall = ((formRatings.cover + formRatings.art + formRatings.story) / 3).toFixed(1);
@@ -524,128 +539,134 @@
         volume: document.getElementById('input-volume').value.trim(),
         writer: document.getElementById('input-writer').value.trim(),
         artist: document.getElementById('input-artist').value.trim(),
-        coverUrl: document.getElementById('input-cover').value.trim() || 'https://via.placeholder.com/400x600/1e293b/94a3b8?text=No+Cover+Art',
+        coverUrl: document.getElementById('input-cover').value.trim() || 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop',
         ratingCover: formRatings.cover,
         ratingArt: formRatings.art,
         ratingStory: formRatings.story,
         overallRating: overall,
         synopsis: document.getElementById('input-synopsis').value.trim(),
         isKey: document.getElementById('input-key').checked,
-        dateLogged: editId ? (vaultComics.find(c => c.id === editId)?.dateLogged || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0]
+        dateLogged: editId ? ((vaultComics.find(function(c){ return c.id === editId; }) || {}).dateLogged || new Date().toISOString().split('T')[0]) : new Date().toISOString().split('T')[0]
       };
 
-      let updated = [...vaultComics];
+      let updated = vaultComics.slice();
       if (editId) {
-        updated = updated.map(c => c.id === editId ? comicData : c);
+        updated = updated.map(function(c) { return c.id === editId ? comicData : c; });
       } else {
         updated.unshift(comicData);
       }
 
       saveComicsToStorage(updated);
-      closeComicModal();
+      window.closeComicModal();
     };
 
-    window.openDeleteModal = (id) => {
+    window.openDeleteModal = function(id) {
       pendingDeleteId = id;
-      const comic = vaultComics.find(c => c.id === id);
-      document.getElementById('delete-comic-name').textContent = comic ? `Deleting: ${comic.title} ${comic.issue}` : 'This action cannot be undone.';
+      const comic = vaultComics.find(function(c) { return c.id === id; });
+      document.getElementById('delete-comic-name').textContent = comic ? 'Deleting: ' + comic.title + ' ' + comic.issue : 'This action cannot be undone.';
       document.getElementById('delete-modal').classList.remove('hidden');
     };
 
-    window.closeDeleteModal = () => {
+    window.closeDeleteModal = function() {
       pendingDeleteId = null;
       document.getElementById('delete-modal').classList.add('hidden');
     };
 
-    window.confirmDelete = () => {
+    window.confirmDelete = function() {
       if (pendingDeleteId) {
-        const updated = vaultComics.filter(c => c.id !== pendingDeleteId);
+        const updated = vaultComics.filter(function(c) { return c.id !== pendingDeleteId; });
         saveComicsToStorage(updated);
-        closeDeleteModal();
-        closeDetailModal();
+        window.closeDeleteModal();
+        window.closeDetailModal();
       }
     };
 
-    window.openDetailModal = (id) => {
-      const comic = vaultComics.find(c => c.id === id);
+    window.openDetailModal = function(id) {
+      const comic = vaultComics.find(function(c) { return c.id === id; });
       if (!comic) return;
 
-      document.getElementById('detail-content').innerHTML = `
-        <div class="flex flex-col md:flex-row gap-6">
-          <div class="w-full md:w-1/3 flex-shrink-0">
-            <img src="${comic.coverUrl}" class="w-full h-auto rounded-xl border border-slate-700 shadow-2xl object-cover max-h-[420px] mx-auto">
-          </div>
-          <div class="flex-1 space-y-4">
-            <div class="flex items-start justify-between">
-              <div>
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="text-xs font-bold px-2.5 py-0.5 rounded uppercase bg-slate-800 text-amber-400 border border-slate-700">${comic.publisher}</span>
-                  ${comic.isKey ? '<span class="text-xs font-bold px-2 py-0.5 rounded uppercase bg-amber-500 text-slate-950"><i class="fa-solid fa-key mr-1"></i>Key Issue</span>' : ''}
-                </div>
-                <h2 class="text-2xl font-black text-white">${comic.title} <span class="text-amber-400">${comic.issue}</span></h2>
-                <p class="text-xs text-slate-400">${comic.volume || 'Single Issue'} • Logged ${comic.dateLogged}</p>
-              </div>
-              <button onclick="closeDetailModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
+      document.getElementById('detail-content').innerHTML = 
+        '<div class="flex flex-col md:flex-row gap-6">' +
+          '<div class="w-full md:w-1/3 flex-shrink-0">' +
+            '<img src="' + comic.coverUrl + '" class="w-full h-auto rounded-xl border border-comic-border shadow-2xl object-cover max-h-[420px] mx-auto">' +
+          '</div>' +
+          '<div class="flex-1 space-y-4">' +
+            '<div class="flex items-start justify-between">' +
+              '<div>' +
+                '<div class="flex items-center gap-2 mb-1">' +
+                  '<span class="text-xs font-bold px-2.5 py-0.5 rounded uppercase bg-slate-800 text-comic-gold border border-slate-700">' + comic.publisher + '</span>' +
+                  (comic.isKey ? '<span class="text-xs font-bold px-2 py-0.5 rounded uppercase bg-comic-gold text-slate-950"><i class="fa-solid fa-key mr-1"></i>Key Issue</span>' : '') +
+                '</div>' +
+                '<h2 class="text-2xl font-black text-white">' + comic.title + ' <span class="text-comic-gold">' + comic.issue + '</span></h2>' +
+                '<p class="text-xs text-slate-400">' + (comic.volume || 'Single Issue') + ' • Logged ' + comic.dateLogged + '</p>' +
+              '</div>' +
+              '<button onclick="closeDetailModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>' +
+            '</div>' +
 
-            <div class="grid grid-cols-2 gap-2 text-xs bg-slate-900/90 p-3 rounded-xl border border-slate-800">
-              <div><span class="text-slate-500 uppercase font-bold">Writer:</span> <span class="text-slate-200">${comic.writer || 'N/A'}</span></div>
-              <div><span class="text-slate-500 uppercase font-bold">Artist:</span> <span class="text-slate-200">${comic.artist || 'N/A'}</span></div>
-            </div>
+            '<div class="grid grid-cols-2 gap-2 text-xs bg-comic-bg p-3 rounded-xl border border-comic-border">' +
+              '<div><span class="text-slate-500 uppercase font-bold">Writer:</span> <span class="text-slate-200">' + (comic.writer || 'N/A') + '</span></div>' +
+              '<div><span class="text-slate-500 uppercase font-bold">Artist:</span> <span class="text-slate-200">' + (comic.artist || 'N/A') + '</span></div>' +
+            '</div>' +
 
-            <div class="bg-slate-900/90 p-3.5 rounded-xl border border-slate-800">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
-                <span class="text-xs font-bold uppercase text-amber-400">Rating Breakdown</span>
-                <span class="text-sm font-bold text-amber-400">${comic.overallRating} ★ Overall</span>
-              </div>
-              <div class="grid grid-cols-3 gap-2 text-center text-xs">
-                <div class="bg-slate-950 p-2 rounded border border-slate-800">🎨 Cover: <b class="text-amber-400">${comic.ratingCover || comic.overallRating} ★</b></div>
-                <div class="bg-slate-950 p-2 rounded border border-slate-800">✏️ Art: <b class="text-amber-400">${comic.ratingArt || comic.overallRating} ★</b></div>
-                <div class="bg-slate-950 p-2 rounded border border-slate-800">📖 Story: <b class="text-amber-400">${comic.ratingStory || comic.overallRating} ★</b></div>
-              </div>
-            </div>
+            '<div class="bg-comic-bg p-3.5 rounded-xl border border-comic-border">' +
+              '<div class="flex items-center justify-between border-b border-comic-border pb-2 mb-2">' +
+                '<span class="text-xs font-bold uppercase text-comic-gold">Rating Breakdown</span>' +
+                '<span class="text-sm font-bold text-comic-gold">' + comic.overallRating + ' ★ Overall</span>' +
+              '</div>' +
+              '<div class="grid grid-cols-3 gap-2 text-center text-xs">' +
+                '<div class="bg-slate-900 p-2 rounded border border-slate-800">🎨 Cover: <b class="text-pink-400">' + (comic.ratingCover || comic.overallRating) + ' ★</b></div>' +
+                '<div class="bg-slate-900 p-2 rounded border border-slate-800">✏️ Art: <b class="text-blue-400">' + (comic.ratingArt || comic.overallRating) + ' ★</b></div>' +
+                '<div class="bg-slate-900 p-2 rounded border border-slate-800">📖 Story: <b class="text-emerald-400">' + (comic.ratingStory || comic.overallRating) + ' ★</b></div>' +
+              '</div>' +
+            '</div>' +
 
-            <div>
-              <h4 class="text-xs font-bold uppercase text-slate-400 mb-1">Personal Synopsis & Notes</h4>
-              <p class="text-sm text-slate-300 leading-relaxed bg-slate-900/60 p-3.5 rounded-xl border border-slate-800/80 whitespace-pre-line">${comic.synopsis || 'No synopsis added for this issue.'}</p>
-            </div>
+            '<div>' +
+              '<h4 class="text-xs font-bold uppercase text-slate-400 mb-1">Personal Synopsis & Notes</h4>' +
+              '<p class="text-sm text-slate-300 leading-relaxed bg-comic-bg p-3.5 rounded-xl border border-comic-border whitespace-pre-line">' + (comic.synopsis || 'No synopsis added for this issue.') + '</p>' +
+            '</div>' +
 
-            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-              <button onclick="openComicModal('${comic.id}'); closeDetailModal();" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg"><i class="fa-solid fa-pen mr-1"></i> Edit Issue</button>
-              <button onclick="openDeleteModal('${comic.id}')" class="px-4 py-2 bg-red-950 hover:bg-red-900 text-red-300 text-xs font-semibold rounded-lg border border-red-800"><i class="fa-solid fa-trash mr-1"></i> Delete</button>
-            </div>
-          </div>
-        </div>
-      `;
+            '<div class="flex items-center justify-end gap-3 pt-3 border-t border-comic-border">' +
+              '<button onclick="openComicModal(\'' + comic.id + '\'); closeDetailModal();" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg"><i class="fa-solid fa-pen mr-1"></i> Edit Issue</button>' +
+              '<button onclick="openDeleteModal(\'' + comic.id + '\')" class="px-4 py-2 bg-red-950 hover:bg-red-900 text-red-300 text-xs font-semibold rounded-lg border border-red-800"><i class="fa-solid fa-trash mr-1"></i> Delete</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+
       document.getElementById('detail-modal').classList.remove('hidden');
     };
 
-    window.closeDetailModal = () => document.getElementById('detail-modal').classList.add('hidden');
+    window.closeDetailModal = function() {
+      document.getElementById('detail-modal').classList.add('hidden');
+    };
 
-    window.openBackupModal = () => document.getElementById('backup-modal').classList.remove('hidden');
-    window.closeBackupModal = () => document.getElementById('backup-modal').classList.add('hidden');
+    window.openBackupModal = function() {
+      document.getElementById('backup-modal').classList.remove('hidden');
+    };
 
-    window.exportJSON = () => {
+    window.closeBackupModal = function() {
+      document.getElementById('backup-modal').classList.add('hidden');
+    };
+
+    window.exportJSON = function() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(vaultComics, null, 2));
       const anchor = document.createElement('a');
       anchor.setAttribute("href", dataStr);
-      anchor.setAttribute("download", `panelvault_backup_${new Date().toISOString().split('T')[0]}.json`);
+      anchor.setAttribute("download", "panelvault_backup_" + new Date().toISOString().split('T')[0] + ".json");
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
     };
 
-    window.importJSON = (e) => {
+    window.importJSON = function(e) {
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = function(event) {
           try {
             const imported = JSON.parse(event.target.result);
             if (Array.isArray(imported)) {
               saveComicsToStorage(imported);
-              closeBackupModal();
-              alert(`Successfully imported ${imported.length} comic issues!`);
+              window.closeBackupModal();
             }
           } catch(err) { alert("Invalid JSON backup file."); }
         };
@@ -653,51 +674,56 @@
       }
     };
 
-    window.exportCSV = () => {
+    window.exportCSV = function() {
       let csv = "Title,Issue,Volume,Publisher,Writer,Artist,OverallRating,CoverRating,ArtRating,StoryRating,KeyIssue,DateLogged,Synopsis\n";
-      vaultComics.forEach(c => {
-        csv += `"${c.title}","${c.issue}","${c.volume || ''}","${c.publisher}","${c.writer || ''}","${c.artist || ''}","${c.overallRating}","${c.ratingCover || ''}","${c.ratingArt || ''}","${c.ratingStory || ''}","${c.isKey ? 'Yes' : 'No'}","${c.dateLogged}","${(c.synopsis || '').replace(/"/g, '""')}"\n`;
+      vaultComics.forEach(function(c) {
+        csv += '"' + (c.title||'') + '","' + (c.issue||'') + '","' + (c.volume||'') + '","' + (c.publisher||'') + '","' + (c.writer||'') + '","' + (c.artist||'') + '","' + (c.overallRating||'') + '","' + (c.ratingCover||'') + '","' + (c.ratingArt||'') + '","' + (c.ratingStory||'') + '","' + (c.isKey ? 'Yes' : 'No') + '","' + (c.dateLogged||'') + '","' + (c.synopsis||'').replace(/"/g, '""') + '"\n';
       });
       const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
       const anchor = document.createElement('a');
       anchor.setAttribute("href", dataStr);
-      anchor.setAttribute("download", `panelvault_export_${new Date().toISOString().split('T')[0]}.csv`);
+      anchor.setAttribute("download", "panelvault_export_" + new Date().toISOString().split('T')[0] + ".csv");
       document.body.appendChild(anchor);
       anchor.click();
       anchor.remove();
     };
 
-    window.clearAllData = () => {
-      if (confirm("Are you sure you want to clear your entire comic vault?")) {
-        saveComicsToStorage([]);
-        closeBackupModal();
-      }
+    window.clearAllData = function() {
+      saveComicsToStorage([]);
+      window.closeBackupModal();
     };
 
-    window.restoreDefaults = () => {
+    window.restoreDefaults = function() {
       saveComicsToStorage(SAMPLE_COMICS);
-      closeBackupModal();
+      window.closeBackupModal();
     };
 
-    window.setViewMode = (mode) => {
+    window.setViewMode = function(mode) {
       currentViewMode = mode;
-      document.getElementById('view-grid-btn').className = mode === 'GRID' ? 'px-2.5 py-1 rounded text-xs bg-amber-500 text-slate-950 font-bold' : 'px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white';
-      document.getElementById('view-list-btn').className = mode === 'LIST' ? 'px-2.5 py-1 rounded text-xs bg-amber-500 text-slate-950 font-bold' : 'px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white';
-      renderVault();
+      document.getElementById('view-grid-btn').className = mode === 'GRID' ? 'px-2.5 py-1 rounded text-xs bg-comic-gold text-slate-950 font-bold' : 'px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white';
+      document.getElementById('view-list-btn').className = mode === 'LIST' ? 'px-2.5 py-1 rounded text-xs bg-comic-gold text-slate-950 font-bold' : 'px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white';
+      window.renderVault();
     };
 
-    window.renderVault = () => {
-      const search = document.getElementById('search-input').value.toLowerCase();
-      const pubFilter = document.getElementById('publisher-filter').value;
-      const rateFilter = document.getElementById('rating-filter').value;
-      const sort = document.getElementById('sort-select').value;
+    window.renderVault = function() {
+      const searchInput = document.getElementById('search-input');
+      const search = searchInput ? searchInput.value.toLowerCase() : '';
+      
+      const pubSelect = document.getElementById('publisher-filter');
+      const pubFilter = pubSelect ? pubSelect.value : 'ALL';
+      
+      const rateSelect = document.getElementById('rating-filter');
+      const rateFilter = rateSelect ? rateSelect.value : 'ALL';
+      
+      const sortSelect = document.getElementById('sort-select');
+      const sort = sortSelect ? sortSelect.value : 'NEWEST';
 
-      let filtered = vaultComics.filter(c => {
-        const matchesSearch = c.title.toLowerCase().includes(search) ||
-                              c.issue.toLowerCase().includes(search) ||
-                              (c.synopsis && c.synopsis.toLowerCase().includes(search)) ||
-                              (c.writer && c.writer.toLowerCase().includes(search)) ||
-                              (c.artist && c.artist.toLowerCase().includes(search));
+      let filtered = vaultComics.filter(function(c) {
+        const matchesSearch = (c.title || '').toLowerCase().includes(search) ||
+                              (c.issue || '').toLowerCase().includes(search) ||
+                              (c.synopsis || '').toLowerCase().includes(search) ||
+                              (c.writer || '').toLowerCase().includes(search) ||
+                              (c.artist || '').toLowerCase().includes(search);
         const matchesPub = pubFilter === 'ALL' || c.publisher === pubFilter;
         const ratingNum = parseFloat(c.overallRating || 0);
         const matchesRate = rateFilter === 'ALL' ||
@@ -708,150 +734,204 @@
       });
 
       // Sort
-      filtered.sort((a, b) => {
-        if (sort === 'RATING_DESC') return parseFloat(b.overallRating) - parseFloat(a.overallRating);
-        if (sort === 'RATING_ASC') return parseFloat(a.overallRating) - parseFloat(b.overallRating);
-        if (sort === 'TITLE') return a.title.localeCompare(b.title);
-        return new Date(b.dateLogged) - new Date(a.dateLogged);
+      filtered.sort(function(a, b) {
+        if (sort === 'RATING_DESC') return parseFloat(b.overallRating || 0) - parseFloat(a.overallRating || 0);
+        if (sort === 'RATING_ASC') return parseFloat(a.overallRating || 0) - parseFloat(b.overallRating || 0);
+        if (sort === 'TITLE') return (a.title || '').localeCompare(b.title || '');
+        return new Date(b.dateLogged || 0) - new Date(a.dateLogged || 0);
       });
 
-      // Dashboard
+      // Stats Calculation
       const totalCount = vaultComics.length;
-      const avgOverall = totalCount ? (vaultComics.reduce((acc, c) => acc + parseFloat(c.overallRating || 0), 0) / totalCount).toFixed(1) : "0.0";
-      const avgCover = totalCount ? (vaultComics.reduce((acc, c) => acc + parseFloat(c.ratingCover || c.overallRating || 0), 0) / totalCount).toFixed(1) : "0.0";
-      const avgArt = totalCount ? (vaultComics.reduce((acc, c) => acc + parseFloat(c.ratingArt || c.overallRating || 0), 0) / totalCount).toFixed(1) : "0.0";
-      const avgStory = totalCount ? (vaultComics.reduce((acc, c) => acc + parseFloat(c.ratingStory || c.overallRating || 0), 0) / totalCount).toFixed(1) : "0.0";
-      const topComic = totalCount ? [...vaultComics].sort((a,b) => parseFloat(b.overallRating) - parseFloat(a.overallRating))[0] : null;
+      const avgOverall = totalCount ? (vaultComics.reduce(function(acc, c) { return acc + parseFloat(c.overallRating || 0); }, 0) / totalCount).toFixed(1) : "0.0";
+      const avgCover = totalCount ? (vaultComics.reduce(function(acc, c) { return acc + parseFloat(c.ratingCover || c.overallRating || 0); }, 0) / totalCount).toFixed(1) : "0.0";
+      const avgArt = totalCount ? (vaultComics.reduce(function(acc, c) { return acc + parseFloat(c.ratingArt || c.overallRating || 0); }, 0) / totalCount).toFixed(1) : "0.0";
+      const avgStory = totalCount ? (vaultComics.reduce(function(acc, c) { return acc + parseFloat(c.ratingStory || c.overallRating || 0); }, 0) / totalCount).toFixed(1) : "0.0";
+      const topComic = totalCount ? vaultComics.slice().sort(function(a,b) { return parseFloat(b.overallRating || 0) - parseFloat(a.overallRating || 0); })[0] : null;
 
-      document.getElementById('stats-dashboard').innerHTML = `
-        <div class="glass-panel p-4 rounded-xl flex items-center justify-between">
-          <div>
-            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Collection</p>
-            <h3 class="text-2xl font-black text-white">${totalCount} <span class="text-xs font-normal text-slate-400">issues</span></h3>
-          </div>
-          <div class="w-10 h-10 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-boxes-stacked"></i></div>
-        </div>
+      const dashboard = document.getElementById('stats-dashboard');
+      if (dashboard) {
+        dashboard.innerHTML = 
+          '<div class="bg-comic-card border border-comic-border p-4 rounded-xl flex items-center justify-between">' +
+            '<div>' +
+              '<p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Collection</p>' +
+              '<h3 class="text-2xl font-black text-white">' + totalCount + ' <span class="text-xs font-normal text-slate-400">issues</span></h3>' +
+            '</div>' +
+            '<div class="w-10 h-10 bg-amber-500/10 border border-amber-500/20 text-comic-gold rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-boxes-stacked"></i></div>' +
+          '</div>' +
 
-        <div class="glass-panel p-4 rounded-xl flex items-center justify-between">
-          <div>
-            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Average Overall</p>
-            <h3 class="text-2xl font-black text-amber-400">${avgOverall} ★</h3>
-          </div>
-          <div class="w-10 h-10 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-star"></i></div>
-        </div>
+          '<div class="bg-comic-card border border-comic-border p-4 rounded-xl flex items-center justify-between">' +
+            '<div>' +
+              '<p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Average Overall</p>' +
+              '<h3 class="text-2xl font-black text-comic-gold">' + avgOverall + ' ★</h3>' +
+            '</div>' +
+            '<div class="w-10 h-10 bg-amber-500/10 border border-amber-500/20 text-comic-gold rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-star"></i></div>' +
+          '</div>' +
 
-        <div class="glass-panel p-4 rounded-xl flex flex-col justify-center">
-          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Category Averages</p>
-          <div class="grid grid-cols-3 gap-1 text-[11px]">
-            <div>🎨 <span class="text-amber-400 font-bold">${avgCover}</span></div>
-            <div>✏️ <span class="text-amber-400 font-bold">${avgArt}</span></div>
-            <div>📖 <span class="text-amber-400 font-bold">${avgStory}</span></div>
-          </div>
-        </div>
+          '<div class="bg-comic-card border border-comic-border p-4 rounded-xl flex flex-col justify-center">' +
+            '<p class="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Category Averages</p>' +
+            '<div class="grid grid-cols-3 gap-1 text-[11px]">' +
+              '<div>🎨 <span class="text-pink-400 font-bold">' + avgCover + '</span></div>' +
+              '<div>✏️ <span class="text-blue-400 font-bold">' + avgArt + '</span></div>' +
+              '<div>📖 <span class="text-emerald-400 font-bold">' + avgStory + '</span></div>' +
+            '</div>' +
+          '</div>' +
 
-        <div class="glass-panel p-4 rounded-xl flex items-center gap-3">
-          ${topComic ? `
-            <img src="${topComic.coverUrl}" class="w-10 h-12 rounded object-cover border border-slate-700">
-            <div class="overflow-hidden">
-              <p class="text-[10px] font-bold uppercase text-amber-400 flex items-center gap-1"><i class="fa-solid fa-trophy"></i> Top Rated</p>
-              <h4 class="text-xs font-bold text-white truncate">${topComic.title} ${topComic.issue}</h4>
-              <p class="text-[11px] text-amber-400 font-bold">${topComic.overallRating} ★ Overall</p>
-            </div>
-          ` : '<p class="text-xs text-slate-500">No issues logged yet</p>'}
-        </div>
-      `;
+          '<div class="bg-comic-card border border-comic-border p-4 rounded-xl flex items-center gap-3">' +
+            (topComic ? 
+              '<img src="' + topComic.coverUrl + '" class="w-10 h-12 rounded object-cover border border-slate-700">' +
+              '<div class="overflow-hidden">' +
+                '<p class="text-[10px] font-bold uppercase text-comic-gold flex items-center gap-1"><i class="fa-solid fa-trophy"></i> Top Rated</p>' +
+                '<h4 class="text-xs font-bold text-white truncate">' + topComic.title + ' ' + topComic.issue + '</h4>' +
+                '<p class="text-[11px] text-comic-gold font-bold">' + topComic.overallRating + ' ★ Overall</p>' +
+              '</div>' : '<p class="text-xs text-slate-500">No issues logged yet</p>') +
+          '</div>';
+      }
 
-      // Vault Render
       const container = document.getElementById('comic-container');
+      if (!container) return;
 
       if (!filtered.length) {
-        container.innerHTML = `
-          <div class="glass-panel p-12 rounded-2xl text-center max-w-md mx-auto my-12">
-            <div class="w-16 h-16 bg-slate-800 text-slate-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
-              <i class="fa-solid fa-book-open-reader"></i>
-            </div>
-            <h3 class="text-base font-bold text-white mb-1">No Comics Found</h3>
-            <p class="text-xs text-slate-400 mb-6">Try adjusting your filters or log a new issue to build your collection.</p>
-            <button onclick="openComicModal()" class="px-4 py-2 bg-gradient-to-r from-red-600 to-amber-600 text-white text-xs font-bold rounded-lg shadow-lg"><i class="fa-solid fa-plus mr-1"></i> Log Comic Issue</button>
-          </div>
-        `;
+        container.innerHTML = 
+          '<div class="bg-comic-card border border-comic-border p-12 rounded-2xl text-center max-w-md mx-auto my-12">' +
+            '<div class="w-16 h-16 bg-slate-800 text-slate-500 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">' +
+              '<i class="fa-solid fa-book-open-reader"></i>' +
+            '</div>' +
+            '<h3 class="text-base font-bold text-white mb-1">No Comics Found</h3>' +
+            '<p class="text-xs text-slate-400 mb-6">Try adjusting your search filters or log a new issue to build your collection.</p>' +
+            '<button onclick="openComicModal()" class="px-4 py-2 bg-gradient-to-r from-red-600 to-amber-600 text-white text-xs font-bold rounded-lg shadow-lg"><i class="fa-solid fa-plus mr-1"></i> Log Comic Issue</button>' +
+          '</div>';
         return;
       }
 
       if (currentViewMode === 'GRID') {
         container.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5";
-        container.innerHTML = filtered.map(c => `
-          <div class="glass-panel rounded-2xl overflow-hidden border border-slate-800 hover:border-slate-700 transition shadow-xl group flex flex-col">
-            <div class="relative h-64 overflow-hidden bg-slate-950 cursor-pointer" onclick="openDetailModal('${c.id}')">
-              <img src="${c.coverUrl}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
-              <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80"></div>
-              
-              <div class="absolute top-3 left-3 flex items-center gap-1.5">
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-slate-900/90 text-amber-400 border border-slate-700">${c.publisher}</span>
-                ${c.isKey ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-amber-500 text-slate-950"><i class="fa-solid fa-key mr-0.5"></i>Key</span>' : ''}
-              </div>
+        container.innerHTML = filtered.map(function(c) {
+          return '<div class="bg-comic-card rounded-2xl overflow-hidden border border-comic-border hover:border-comic-accent/60 transition shadow-xl group flex flex-col">' +
+            '<div class="relative h-64 overflow-hidden bg-slate-950 cursor-pointer" onclick="openDetailModal(\'' + c.id + '\')">' +
+              '<img src="' + c.coverUrl + '" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">' +
+              '<div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80"></div>' +
+              '<div class="absolute top-3 left-3 flex items-center gap-1.5">' +
+                '<span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-slate-900/90 text-comic-gold border border-slate-700">' + c.publisher + '</span>' +
+                (c.isKey ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-comic-gold text-slate-950"><i class="fa-solid fa-key mr-0.5"></i>Key</span>' : '') +
+              '</div>' +
+              '<div class="absolute bottom-3 right-3 bg-slate-900/90 border border-amber-500/40 px-2.5 py-1 rounded-lg text-comic-gold text-xs font-black">' +
+                c.overallRating + ' ★' +
+              '</div>' +
+            '</div>' +
 
-              <div class="absolute bottom-3 right-3 bg-slate-900/90 border border-amber-500/40 px-2.5 py-1 rounded-lg text-amber-400 text-xs font-black">
-                ${c.overallRating} ★
-              </div>
-            </div>
+            '<div class="p-4 flex-1 flex flex-col justify-between">' +
+              '<div>' +
+                '<div class="flex items-start justify-between gap-2 mb-1">' +
+                  '<h3 class="font-black text-sm text-white group-hover:text-comic-accent transition cursor-pointer" onclick="openDetailModal(\'' + c.id + '\')">' + c.title + '</h3>' +
+                  '<span class="text-xs font-bold text-comic-gold">' + c.issue + '</span>' +
+                '</div>' +
+                '<p class="text-[11px] text-slate-400 mb-2">' + (c.volume || 'Single Issue') + '</p>' +
 
-            <div class="p-4 flex-1 flex flex-col justify-between">
-              <div>
-                <div class="flex items-start justify-between gap-2 mb-1">
-                  <h3 class="font-black text-sm text-white group-hover:text-amber-400 transition cursor-pointer" onclick="openDetailModal('${c.id}')">${c.title}</h3>
-                  <span class="text-xs font-bold text-amber-400">${c.issue}</span>
-                </div>
-                <p class="text-[11px] text-slate-400 mb-2">${c.volume || 'Single Issue'}</p>
+                '<div class="grid grid-cols-3 gap-1 text-[10px] bg-comic-bg p-2 rounded-lg border border-comic-border text-center mb-3">' +
+                  '<div>Cover: <b class="text-pink-400">' + (c.ratingCover || c.overallRating) + '★</b></div>' +
+                  '<div>Art: <b class="text-blue-400">' + (c.ratingArt || c.overallRating) + '★</b></div>' +
+                  '<div>Story: <b class="text-emerald-400">' + (c.ratingStory || c.overallRating) + '★</b></div>' +
+                '</div>' +
 
-                <div class="grid grid-cols-3 gap-1 text-[10px] bg-slate-900/60 p-2 rounded-lg border border-slate-800 text-center mb-3">
-                  <div>Cover: <b class="text-amber-400">${c.ratingCover || c.overallRating}★</b></div>
-                  <div>Art: <b class="text-amber-400">${c.ratingArt || c.overallRating}★</b></div>
-                  <div>Story: <b class="text-amber-400">${c.ratingStory || c.overallRating}★</b></div>
-                </div>
+                '<p class="text-xs text-slate-300 line-clamp-2 mb-3 italic">"' + (c.synopsis || 'No personal review notes logged.') + '"</p>' +
+              '</div>' +
 
-                <p class="text-xs text-slate-300 line-clamp-2 mb-3 italic">"${c.synopsis || 'No personal review notes logged.'}"</p>
-              </div>
-
-              <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-xs text-slate-500">
-                <span>${c.dateLogged}</span>
-                <div class="flex items-center gap-2">
-                  <button onclick="openComicModal('${c.id}')" class="hover:text-amber-400"><i class="fa-solid fa-pen"></i></button>
-                  <button onclick="openDeleteModal('${c.id}')" class="hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
-                </div>
-              </div>
-            </div>
-          </div>
-        `).join('');
+              '<div class="flex items-center justify-between pt-2 border-t border-comic-border text-xs text-slate-500">' +
+                '<span>' + c.dateLogged + '</span>' +
+                '<div class="flex items-center gap-2.5">' +
+                  '<button onclick="openComicModal(\'' + c.id + '\')" class="hover:text-comic-blue transition"><i class="fa-solid fa-pen"></i></button>' +
+                  '<button onclick="openDeleteModal(\'' + c.id + '\')" class="hover:text-comic-accent transition"><i class="fa-solid fa-trash"></i></button>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
       } else {
         container.className = "space-y-3";
-        container.innerHTML = filtered.map(c => `
-          <div class="glass-panel p-3.5 rounded-xl border border-slate-800 flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3.5 overflow-hidden cursor-pointer" onclick="openDetailModal('${c.id}')">
-              <img src="${c.coverUrl}" class="w-12 h-16 rounded object-cover border border-slate-700 flex-shrink-0">
-              <div class="overflow-hidden">
-                <div class="flex items-center gap-2 mb-0.5">
-                  <span class="text-[10px] font-bold px-1.5 py-0.2 rounded uppercase bg-slate-800 text-amber-400">${c.publisher}</span>
-                  <h3 class="font-bold text-sm text-white truncate">${c.title} <span class="text-amber-400">${c.issue}</span></h3>
-                </div>
-                <p class="text-xs text-slate-400 truncate">${c.synopsis || 'No review notes logged'}</p>
-              </div>
-            </div>
+        container.innerHTML = filtered.map(function(c) {
+          return '<div class="bg-comic-card p-3.5 rounded-xl border border-comic-border flex items-center justify-between gap-4">' +
+            '<div class="flex items-center gap-3.5 overflow-hidden cursor-pointer" onclick="openDetailModal(\'' + c.id + '\')">' +
+              '<img src="' + c.coverUrl + '" class="w-12 h-16 rounded object-cover border border-slate-700 flex-shrink-0">' +
+              '<div class="overflow-hidden">' +
+                '<div class="flex items-center gap-2 mb-0.5">' +
+                  '<span class="text-[10px] font-bold px-1.5 py-0.2 rounded uppercase bg-slate-800 text-comic-gold">' + c.publisher + '</span>' +
+                  '<h3 class="font-bold text-sm text-white truncate">' + c.title + ' <span class="text-comic-gold">' + c.issue + '</span></h3>' +
+                '</div>' +
+                '<p class="text-xs text-slate-400 truncate">' + (c.synopsis || 'No review notes logged') + '</p>' +
+              '</div>' +
+            '</div>' +
 
-            <div class="flex items-center gap-4 flex-shrink-0">
-              <div class="text-right">
-                <span class="text-sm font-bold text-amber-400 block">${c.overallRating} ★</span>
-                <span class="text-[10px] text-slate-500">${c.dateLogged}</span>
-              </div>
-              <div class="flex items-center gap-2 border-l border-slate-800 pl-3">
-                <button onclick="openComicModal('${c.id}')" class="p-1.5 text-slate-400 hover:text-amber-400"><i class="fa-solid fa-pen"></i></button>
-                <button onclick="openDeleteModal('${c.id}')" class="p-1.5 text-slate-400 hover:text-red-400"><i class="fa-solid fa-trash"></i></button>
-              </div>
-            </div>
-          </div>
-        `).join('');
+            '<div class="flex items-center gap-4 flex-shrink-0">' +
+              '<div class="text-right">' +
+                '<span class="text-sm font-bold text-comic-gold block">' + c.overallRating + ' ★</span>' +
+                '<span class="text-[10px] text-slate-500">' + c.dateLogged + '</span>' +
+              '</div>' +
+              '<div class="flex items-center gap-2 border-l border-comic-border pl-3">' +
+                '<button onclick="openComicModal(\'' + c.id + '\')" class="p-1.5 text-slate-400 hover:text-comic-blue"><i class="fa-solid fa-pen"></i></button>' +
+                '<button onclick="openDeleteModal(\'' + c.id + '\')" class="p-1.5 text-slate-400 hover:text-comic-accent"><i class="fa-solid fa-trash"></i></button>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
       }
     };
+
+    // --- AUTH STATE LISTENER & INITIALIZATION ---
+    auth.onAuthStateChanged(function(user) {
+      const statusEl = document.getElementById('sync-status');
+      const authContainer = document.getElementById('auth-container');
+
+      if (user) {
+        currentUser = user;
+        if (statusEl) {
+          statusEl.className = "text-xs px-2.5 py-0.5 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-800 font-medium";
+          statusEl.innerHTML = '<i class="fa-solid fa-circle text-[8px] mr-1"></i>Online / Synced';
+        }
+
+        if (authContainer) {
+          authContainer.innerHTML = 
+            '<div class="flex items-center gap-2 bg-slate-800/80 px-2.5 py-1.5 rounded-lg border border-slate-700">' +
+              '<img src="' + (user.photoURL || 'https://via.placeholder.com/20') + '" class="w-5 h-5 rounded-full border border-comic-gold">' +
+              '<span class="text-xs text-slate-200 font-medium hidden md:inline">' + (user.displayName || 'Collector') + '</span>' +
+              '<button onclick="signOutUser()" class="text-xs text-slate-400 hover:text-red-400 ml-1"><i class="fa-solid fa-right-from-bracket"></i></button>' +
+            '</div>';
+        }
+
+        db.ref('users/' + user.uid + '/comics').on('value', function(snapshot) {
+          const data = snapshot.val();
+          if (data !== null) {
+            vaultComics = Array.isArray(data) ? data : Object.values(data);
+          } else {
+            vaultComics = getLocalComics();
+            db.ref('users/' + user.uid + '/comics').set(vaultComics);
+          }
+          window.renderVault();
+        });
+      } else {
+        currentUser = null;
+        if (statusEl) {
+          statusEl.className = "text-xs px-2.5 py-0.5 rounded-full bg-red-950/80 text-red-400 border border-red-800 font-medium";
+          statusEl.innerHTML = '<i class="fa-solid fa-circle text-[8px] mr-1"></i>Offline Mode';
+        }
+
+        if (authContainer) {
+          authContainer.innerHTML = 
+            '<button id="login-btn" onclick="signInUser()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-700 flex items-center gap-2 transition">' +
+              '<i class="fa-brands fa-google text-comic-gold"></i> Sign in with Google' +
+            '</button>';
+        }
+
+        vaultComics = getLocalComics();
+        window.renderVault();
+      }
+    });
+
+    // Initial render on DOM load
+    document.addEventListener('DOMContentLoaded', function() {
+      vaultComics = getLocalComics();
+      window.renderVault();
+    });
   </script>
 </body>
 </html>
