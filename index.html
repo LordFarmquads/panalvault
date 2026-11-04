@@ -107,52 +107,86 @@
   <!-- Main Content Area -->
   <main class="max-w-7xl mx-auto px-4 md:px-8">
     
+    <!-- Top View Navigation Tabs -->
+    <div class="flex items-center gap-2 mb-6 border-b border-comic-border pb-3 overflow-x-auto">
+      <button id="tab-vault-btn" onclick="setActiveTab('VAULT')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-comic-accent text-white shadow-lg">
+        <i class="fa-solid fa-boxes-stacked"></i> Vault Collection
+      </button>
+      <button id="tab-arcs-btn" onclick="setActiveTab('ARCS')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white border border-comic-border">
+        <i class="fa-solid fa-layer-group text-comic-gold"></i> Story Arcs & Events
+      </button>
+      <button id="tab-analytics-btn" onclick="setActiveTab('ANALYTICS')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white border border-comic-border">
+        <i class="fa-solid fa-chart-pie text-comic-blue"></i> Character & Run Analytics
+      </button>
+    </div>
+
     <!-- Stats Dashboard -->
     <div id="stats-dashboard" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
 
-    <!-- Controls Bar -->
-    <div class="bg-comic-card border border-comic-border p-3.5 rounded-xl mb-6 flex flex-wrap items-center justify-between gap-3 shadow-lg">
-      <div class="flex-1 min-w-[220px]">
-        <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-          <input type="text" id="search-input" oninput="renderVault()" placeholder="Search title, issue, synopsis, writer, artist..." class="w-full pl-9 pr-3 py-2 bg-comic-bg border border-comic-border rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-comic-accent">
+    <!-- Vault Tab View -->
+    <div id="vault-tab-view">
+      <!-- Controls Bar -->
+      <div class="bg-comic-card border border-comic-border p-3.5 rounded-xl mb-6 flex flex-wrap items-center justify-between gap-3 shadow-lg">
+        <div class="flex-1 min-w-[200px]">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="text" id="search-input" oninput="renderVault()" placeholder="Search title, issue, arc, character, writer..." class="w-full pl-9 pr-3 py-2 bg-comic-bg border border-comic-border rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-comic-accent">
+          </div>
+        </div>
+
+        <div class="flex items-center flex-wrap gap-2">
+          <select id="character-filter" onchange="renderVault()" class="bg-comic-bg border border-comic-border text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-comic-accent">
+            <option value="ALL">All Characters</option>
+          </select>
+
+          <select id="arc-filter" onchange="renderVault()" class="bg-comic-bg border border-comic-border text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-comic-accent">
+            <option value="ALL">All Story Arcs</option>
+          </select>
+
+          <select id="publisher-filter" onchange="renderVault()" class="bg-comic-bg border border-comic-border text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-comic-accent">
+            <option value="ALL">All Publishers</option>
+            <option value="Marvel">Marvel</option>
+            <option value="DC">DC Comics</option>
+            <option value="Image">Image Comics</option>
+            <option value="IDW">IDW</option>
+            <option value="Boom">BOOM! Studios</option>
+            <option value="Indie">Indie / Other</option>
+          </select>
+
+          <select id="rating-filter" onchange="renderVault()" class="bg-comic-bg border border-comic-border text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-comic-accent">
+            <option value="ALL">All Ratings</option>
+            <option value="5">5 Stars</option>
+            <option value="4">4+ Stars</option>
+            <option value="3">3+ Stars</option>
+          </select>
+
+          <select id="sort-select" onchange="renderVault()" class="bg-comic-bg border border-comic-border text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-comic-accent">
+            <option value="NEWEST">Recently Logged</option>
+            <option value="RATING_DESC">Highest Rated</option>
+            <option value="RATING_ASC">Lowest Rated</option>
+            <option value="TITLE">Title (A-Z)</option>
+          </select>
+
+          <div class="flex bg-comic-bg border border-comic-border rounded-lg p-0.5 ml-1">
+            <button id="view-grid-btn" onclick="setViewMode('GRID')" class="px-2.5 py-1 rounded text-xs bg-comic-gold text-slate-950 font-bold"><i class="fa-solid fa-border-all"></i></button>
+            <button id="view-list-btn" onclick="setViewMode('LIST')" class="px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-list"></i></button>
+          </div>
         </div>
       </div>
 
-      <div class="flex items-center flex-wrap gap-2">
-        <select id="publisher-filter" onchange="renderVault()" class="bg-comic-bg border border-comic-border text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-comic-accent">
-          <option value="ALL">All Publishers</option>
-          <option value="Marvel">Marvel</option>
-          <option value="DC">DC Comics</option>
-          <option value="Image">Image Comics</option>
-          <option value="IDW">IDW</option>
-          <option value="Boom">BOOM! Studios</option>
-          <option value="Indie">Indie / Other</option>
-        </select>
-
-        <select id="rating-filter" onchange="renderVault()" class="bg-comic-bg border border-comic-border text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-comic-accent">
-          <option value="ALL">All Ratings</option>
-          <option value="5">5 Stars</option>
-          <option value="4">4+ Stars</option>
-          <option value="3">3+ Stars</option>
-        </select>
-
-        <select id="sort-select" onchange="renderVault()" class="bg-comic-bg border border-comic-border text-xs text-slate-300 rounded-lg px-2.5 py-2 focus:outline-none focus:border-comic-accent">
-          <option value="NEWEST">Recently Logged</option>
-          <option value="RATING_DESC">Highest Rated</option>
-          <option value="RATING_ASC">Lowest Rated</option>
-          <option value="TITLE">Title (A-Z)</option>
-        </select>
-
-        <div class="flex bg-comic-bg border border-comic-border rounded-lg p-0.5 ml-1">
-          <button id="view-grid-btn" onclick="setViewMode('GRID')" class="px-2.5 py-1 rounded text-xs bg-comic-gold text-slate-950 font-bold"><i class="fa-solid fa-border-all"></i></button>
-          <button id="view-list-btn" onclick="setViewMode('LIST')" class="px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-list"></i></button>
-        </div>
-      </div>
+      <!-- Vault Output -->
+      <div id="comic-container"></div>
     </div>
 
-    <!-- Vault Output -->
-    <div id="comic-container"></div>
+    <!-- Story Arcs Tab View -->
+    <div id="arcs-tab-view" class="hidden">
+      <div id="arcs-container" class="space-y-6"></div>
+    </div>
+
+    <!-- Analytics Tab View -->
+    <div id="analytics-tab-view" class="hidden space-y-6">
+      <div id="analytics-container"></div>
+    </div>
   </main>
 
   <!-- Log / Edit Comic Modal -->
@@ -170,8 +204,9 @@
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div class="md:col-span-2">
-            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Comic Title *</label>
-            <input type="text" id="input-title" required placeholder="e.g., Captain America, Saga" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
+            <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Comic Title / Series Run *</label>
+            <input type="text" id="input-title" list="datalist-titles" required placeholder="e.g., Detective Comics, Batman, Saga" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
+            <datalist id="datalist-titles"></datalist>
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Publisher *</label>
@@ -186,6 +221,19 @@
           </div>
         </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-900/60 p-3 rounded-xl border border-comic-border">
+          <div>
+            <label class="block text-xs font-bold text-pink-400 uppercase mb-1"><i class="fa-solid fa-user-ninja mr-1"></i> Character(s) / Family (comma-separated)</label>
+            <input type="text" id="input-character" list="datalist-characters" placeholder="e.g., Avengers, Iron Man, Captain America, Thor" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
+            <datalist id="datalist-characters"></datalist>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-comic-gold uppercase mb-1"><i class="fa-solid fa-book-bookmark mr-1"></i> Story Arc / Event</label>
+            <input type="text" id="input-story-arc" list="datalist-story-arcs" placeholder="e.g., Bruce Wayne: Murderer?, Court of Owls" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
+            <datalist id="datalist-story-arcs"></datalist>
+          </div>
+        </div>
+
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Issue # *</label>
@@ -197,11 +245,13 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Writer(s)</label>
-            <input type="text" id="input-writer" placeholder="e.g., Mark Waid" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
+            <input type="text" id="input-writer" list="datalist-writers" placeholder="e.g., Mark Waid" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
+            <datalist id="datalist-writers"></datalist>
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Artist(s)</label>
-            <input type="text" id="input-artist" placeholder="e.g., Alex Ross" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
+            <input type="text" id="input-artist" list="datalist-artists" placeholder="e.g., Alex Ross" class="w-full bg-comic-bg border border-comic-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-comic-accent">
+            <datalist id="datalist-artists"></datalist>
           </div>
         </div>
 
@@ -347,91 +397,104 @@
     let vaultComics = [];
     let pendingDeleteId = null;
     let currentViewMode = 'GRID';
+    let currentTab = 'VAULT';
     let formRatings = { cover: 5, art: 5, story: 5 };
+
+    function getComicCharacters(c) {
+      if (!c || !c.characterFamily) return ['Standalone / Other'];
+      const list = c.characterFamily.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+      return list.length ? list : ['Standalone / Other'];
+    }
 
     const SAMPLE_COMICS = [
       {
         id: "sample-1",
-        title: "Saga",
-        issue: "#1",
+        title: "Detective Comics",
+        issue: "#742",
         volume: "Vol 1",
-        publisher: "Image",
-        writer: "Brian K. Vaughan",
-        artist: "Fiona Staples",
-        coverUrl: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop",
+        publisher: "DC",
+        characterFamily: "Batman, Bat-Family",
+        storyArc: "Bruce Wayne: Murderer?",
+        writer: "Greg Rucka",
+        artist: "Shawn Martinbrough",
+        coverUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop",
         ratingCover: 5,
-        ratingArt: 5,
+        ratingArt: 4.5,
         ratingStory: 5,
-        overallRating: "5.0",
-        synopsis: "An epic space opera fantasy blend following Alana and Marko, two soldiers from opposing galactic races who fall in love.",
+        overallRating: "4.8",
+        synopsis: "Bruce Wayne is framed for the murder of Vesper Fairchild. Detective Comics kick-off to the classic storyline.",
         isKey: true,
         dateLogged: "2026-10-25"
       },
       {
         id: "sample-2",
-        title: "Batman: Year One",
-        issue: "#404",
-        volume: "Batman #404",
+        title: "Batman",
+        issue: "#587",
+        volume: "Vol 1",
         publisher: "DC",
-        writer: "Frank Miller",
-        artist: "David Mazzucchelli",
-        coverUrl: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop",
+        characterFamily: "Batman, Nightwing, Batgirl",
+        storyArc: "Bruce Wayne: Murderer?",
+        writer: "Ed Brubaker",
+        artist: "Scott McDaniel",
+        coverUrl: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&auto=format&fit=crop",
         ratingCover: 4.5,
         ratingArt: 5,
         ratingStory: 5,
         overallRating: "4.8",
-        synopsis: "Frank Miller and David Mazzucchelli redefine the Dark Knight's origin story in gritty 1980s Gotham City.",
+        synopsis: "Batman flees Blackgate prison as a fugitive while his Bat-Family tries to solve the murder frame-up.",
         isKey: true,
-        dateLogged: "2026-10-20"
+        dateLogged: "2026-10-22"
       },
       {
         id: "sample-3",
-        title: "The Amazing Spider-Man",
-        issue: "#300",
-        volume: "Vol 1 #300",
-        publisher: "Marvel",
-        writer: "David Michelinie",
-        artist: "Todd McFarlane",
+        title: "Saga",
+        issue: "#1",
+        volume: "Vol 1",
+        publisher: "Image",
+        characterFamily: "Saga",
+        storyArc: "Chapter One",
+        writer: "Brian K. Vaughan",
+        artist: "Fiona Staples",
         coverUrl: "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=600&auto=format&fit=crop",
         ratingCover: 5,
         ratingArt: 5,
-        ratingStory: 4.5,
-        overallRating: "4.8",
-        synopsis: "First full appearance of Venom (Eddie Brock)! Todd McFarlane's iconic artwork and classic black suit wrap-up.",
+        ratingStory: 5,
+        overallRating: "5.0",
+        synopsis: "An epic space opera fantasy blend following Alana and Marko, two soldiers from opposing galactic races.",
         isKey: true,
         dateLogged: "2026-10-15"
       }
     ];
 
     // --- FIREBASE INITIALIZATION ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyCkQlrIZNulCIySAu-XTozRLI4xjGjMXNI",
-      authDomain: "panalvault.firebaseapp.com",
-      databaseURL: "https://panalvault-default-rtdb.firebaseio.com",
-      projectId: "panalvault",
-      storageBucket: "panalvault.firebasestorage.app",
-      messagingSenderId: "360997151189",
-      appId: "1:360997151189:web:5355bfe23a8148bee49d5c",
-      measurementId: "G-86JSF55T1J"
+    window.setActiveTab = function(tabName) {
+      currentTab = tabName;
+      ['vault', 'arcs', 'analytics'].forEach(function(t) {
+        const btn = document.getElementById('tab-' + t + '-btn');
+        const view = document.getElementById(t + '-tab-view');
+        if (t.toUpperCase() === tabName) {
+          if (btn) btn.className = "px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-comic-accent text-white shadow-lg";
+          if (view) view.classList.remove('hidden');
+        } else {
+          if (btn) btn.className = "px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white border border-comic-border";
+          if (view) view.classList.add('hidden');
+        }
+      });
+
+      if (tabName === 'VAULT') window.renderVault();
+      if (tabName === 'ARCS') window.renderStoryArcs();
+      if (tabName === 'ANALYTICS') window.renderAnalytics();
     };
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    const auth = firebase.auth();
-    const db = firebase.database();
-    const provider = new firebase.auth.GoogleAuthProvider();
-
-    // --- FUNCTION DECLARATIONS (ASSIGNED TO WINDOW) ---
-
     window.signInUser = function() {
-      auth.signInWithPopup(provider).catch(function(err) {
-        alert("Sign-in failed: " + err.message + "\nEnsure lordfarmquads.github.io is added to Authorized Domains in Firebase Console.");
+      const provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider).catch(function(err) {
+        alert("Sign-in failed: " + err.message + "\nEnsure your domain is added to Authorized Domains in Firebase Console.");
       });
     };
 
     window.signOutUser = function() {
-      auth.signOut();
+      firebase.auth().signOut();
     };
 
     function getLocalComics() {
@@ -447,9 +510,11 @@
       vaultComics = comics;
       localStorage.setItem('panelvault_comics_v3', JSON.stringify(comics));
       if (currentUser) {
-        db.ref('users/' + currentUser.uid + '/comics').set(comics);
+        firebase.database().ref('users/' + currentUser.uid + '/comics').set(comics);
       }
-      window.renderVault();
+      if (window.renderVault) window.renderVault();
+      if (currentTab === 'ARCS' && window.renderStoryArcs) window.renderStoryArcs();
+      if (currentTab === 'ANALYTICS' && window.renderAnalytics) window.renderAnalytics();
     }
 
     window.setRating = function(category, val) {
@@ -462,12 +527,10 @@
         const val = formRatings[cat];
         const scoreEl = document.getElementById('score-' + cat);
         if (scoreEl) scoreEl.textContent = val + '.0 / 5';
-        
         const container = document.getElementById('stars-' + cat);
         if (container) {
           container.innerHTML = [1,2,3,4,5].map(function(star) {
-            const isFilled = star <= val;
-            return '<i class="fa-solid fa-star star-pick-btn text-xl ' + (isFilled ? 'text-comic-gold' : 'text-slate-700') + '" onclick="setRating(\'' + cat + '\', ' + star + ')"></i>';
+            return '<i class="fa-solid fa-star star-pick-btn ' + (star <= val ? 'text-comic-gold' : 'text-slate-700') + '" onclick="setRating(\'' + cat + '\', ' + star + ')"></i>';
           }).join('');
         }
       });
@@ -477,7 +540,122 @@
       if (overallEl) overallEl.textContent = overall + ' ★';
     }
 
+    window.closeComicModal = function() {
+      document.getElementById('comic-modal').classList.add('hidden');
+    };
+
+    window.handleFileUpload = function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          document.getElementById('input-cover').value = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    window.openDeleteModal = function(id) {
+      pendingDeleteId = id;
+      const comic = vaultComics.find(function(c) { return c.id === id; });
+      const nameEl = document.getElementById('delete-comic-name');
+      if (nameEl) nameEl.textContent = comic ? 'Deleting: ' + comic.title + ' ' + comic.issue : 'This action cannot be undone.';
+      document.getElementById('delete-modal').classList.remove('hidden');
+    };
+
+    window.closeDeleteModal = function() {
+      pendingDeleteId = null;
+      document.getElementById('delete-modal').classList.add('hidden');
+    };
+
+    window.confirmDelete = function() {
+      if (pendingDeleteId) {
+        const updated = vaultComics.filter(function(c) { return c.id !== pendingDeleteId; });
+        saveComicsToStorage(updated);
+        window.closeDeleteModal();
+        window.closeDetailModal();
+      }
+    };
+
+    window.closeDetailModal = function() {
+      document.getElementById('detail-modal').classList.add('hidden');
+    };
+
+    window.openBackupModal = function() {
+      document.getElementById('backup-modal').classList.remove('hidden');
+    };
+
+    window.closeBackupModal = function() {
+      document.getElementById('backup-modal').classList.add('hidden');
+    };
+
+    window.exportJSON = function() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(vaultComics, null, 2));
+      const anchor = document.createElement('a');
+      anchor.setAttribute("href", dataStr);
+      anchor.setAttribute("download", "panelvault_backup_" + new Date().toISOString().split('T')[0] + ".json");
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    };
+
+    window.importJSON = function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          try {
+            const imported = JSON.parse(event.target.result);
+            if (Array.isArray(imported)) {
+              saveComicsToStorage(imported);
+              window.closeBackupModal();
+              alert("Successfully imported " + imported.length + " comic issues!");
+            }
+          } catch(err) { alert("Invalid JSON backup file."); }
+        };
+        reader.readAsText(file);
+      }
+    };
+
+    function populateModalDatalists() {
+      const titles = new Set();
+      const arcs = new Set();
+      const writers = new Set();
+      const artists = new Set();
+      const chars = new Set();
+
+      vaultComics.forEach(function(c) {
+        if (c.title) titles.add(c.title);
+        if (c.storyArc) arcs.add(c.storyArc);
+        if (c.writer) {
+          c.writer.split(',').forEach(function(w) { if (w.trim()) writers.add(w.trim()); });
+        }
+        if (c.artist) {
+          c.artist.split(',').forEach(function(a) { if (a.trim()) artists.add(a.trim()); });
+        }
+        if (c.characterFamily) {
+          c.characterFamily.split(',').forEach(function(ch) { if (ch.trim()) chars.add(ch.trim()); });
+        }
+      });
+
+      function setList(id, set) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const sorted = Array.from(set).sort();
+        el.innerHTML = sorted.map(function(item) {
+          return '<option value="' + item.replace(/"/g, '&quot;') + '"></option>';
+        }).join('');
+      }
+
+      setList('datalist-titles', titles);
+      setList('datalist-story-arcs', arcs);
+      setList('datalist-writers', writers);
+      setList('datalist-artists', artists);
+      setList('datalist-characters', chars);
+    }
+
     window.openComicModal = function(editId) {
+      populateModalDatalists();
       const form = document.getElementById('comic-form');
       if (form) form.reset();
       document.getElementById('edit-id').value = '';
@@ -490,6 +668,8 @@
           document.getElementById('edit-id').value = comic.id;
           document.getElementById('input-title').value = comic.title || '';
           document.getElementById('input-publisher').value = comic.publisher || 'Marvel';
+          document.getElementById('input-character').value = comic.characterFamily || '';
+          document.getElementById('input-story-arc').value = comic.storyArc || '';
           document.getElementById('input-issue').value = comic.issue || '';
           document.getElementById('input-volume').value = comic.volume || '';
           document.getElementById('input-writer').value = comic.writer || '';
@@ -511,21 +691,6 @@
       document.getElementById('comic-modal').classList.remove('hidden');
     };
 
-    window.closeComicModal = function() {
-      document.getElementById('comic-modal').classList.add('hidden');
-    };
-
-    window.handleFileUpload = function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          document.getElementById('input-cover').value = event.target.result;
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-
     window.saveComic = function(e) {
       e.preventDefault();
       const editId = document.getElementById('edit-id').value;
@@ -535,6 +700,8 @@
         id: editId || 'comic-' + Date.now(),
         title: document.getElementById('input-title').value.trim(),
         publisher: document.getElementById('input-publisher').value,
+        characterFamily: document.getElementById('input-character').value.trim() || 'Standalone / Other',
+        storyArc: document.getElementById('input-story-arc').value.trim() || 'Single Issue / Ongoing Run',
         issue: document.getElementById('input-issue').value.trim(),
         volume: document.getElementById('input-volume').value.trim(),
         writer: document.getElementById('input-writer').value.trim(),
@@ -560,27 +727,6 @@
       window.closeComicModal();
     };
 
-    window.openDeleteModal = function(id) {
-      pendingDeleteId = id;
-      const comic = vaultComics.find(function(c) { return c.id === id; });
-      document.getElementById('delete-comic-name').textContent = comic ? 'Deleting: ' + comic.title + ' ' + comic.issue : 'This action cannot be undone.';
-      document.getElementById('delete-modal').classList.remove('hidden');
-    };
-
-    window.closeDeleteModal = function() {
-      pendingDeleteId = null;
-      document.getElementById('delete-modal').classList.add('hidden');
-    };
-
-    window.confirmDelete = function() {
-      if (pendingDeleteId) {
-        const updated = vaultComics.filter(function(c) { return c.id !== pendingDeleteId; });
-        saveComicsToStorage(updated);
-        window.closeDeleteModal();
-        window.closeDetailModal();
-      }
-    };
-
     window.openDetailModal = function(id) {
       const comic = vaultComics.find(function(c) { return c.id === id; });
       if (!comic) return;
@@ -593,8 +739,12 @@
           '<div class="flex-1 space-y-4">' +
             '<div class="flex items-start justify-between">' +
               '<div>' +
-                '<div class="flex items-center gap-2 mb-1">' +
+                '<div class="flex flex-wrap items-center gap-1.5 mb-1.5">' +
                   '<span class="text-xs font-bold px-2.5 py-0.5 rounded uppercase bg-slate-800 text-comic-gold border border-slate-700">' + comic.publisher + '</span>' +
+                  getComicCharacters(comic).map(function(ch) {
+                    return '<span class="text-xs font-bold px-2.5 py-0.5 rounded bg-pink-950 text-pink-300 border border-pink-800"><i class="fa-solid fa-user-ninja mr-1"></i>' + ch + '</span>';
+                  }).join('') +
+                  '<span class="text-xs font-bold px-2.5 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800"><i class="fa-solid fa-book-bookmark mr-1"></i>' + (comic.storyArc || 'Ongoing Run') + '</span>' +
                   (comic.isKey ? '<span class="text-xs font-bold px-2 py-0.5 rounded uppercase bg-comic-gold text-slate-950"><i class="fa-solid fa-key mr-1"></i>Key Issue</span>' : '') +
                 '</div>' +
                 '<h2 class="text-2xl font-black text-white">' + comic.title + ' <span class="text-comic-gold">' + comic.issue + '</span></h2>' +
@@ -635,80 +785,44 @@
       document.getElementById('detail-modal').classList.remove('hidden');
     };
 
-    window.closeDetailModal = function() {
-      document.getElementById('detail-modal').classList.add('hidden');
-    };
+    function updateFilterDropdowns() {
+      const charSelect = document.getElementById('character-filter');
+      const arcSelect = document.getElementById('arc-filter');
+      if (!charSelect || !arcSelect) return;
 
-    window.openBackupModal = function() {
-      document.getElementById('backup-modal').classList.remove('hidden');
-    };
+      const currChar = charSelect.value;
+      const currArc = arcSelect.value;
 
-    window.closeBackupModal = function() {
-      document.getElementById('backup-modal').classList.add('hidden');
-    };
-
-    window.exportJSON = function() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(vaultComics, null, 2));
-      const anchor = document.createElement('a');
-      anchor.setAttribute("href", dataStr);
-      anchor.setAttribute("download", "panelvault_backup_" + new Date().toISOString().split('T')[0] + ".json");
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-    };
-
-    window.importJSON = function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          try {
-            const imported = JSON.parse(event.target.result);
-            if (Array.isArray(imported)) {
-              saveComicsToStorage(imported);
-              window.closeBackupModal();
-            }
-          } catch(err) { alert("Invalid JSON backup file."); }
-        };
-        reader.readAsText(file);
-      }
-    };
-
-    window.exportCSV = function() {
-      let csv = "Title,Issue,Volume,Publisher,Writer,Artist,OverallRating,CoverRating,ArtRating,StoryRating,KeyIssue,DateLogged,Synopsis\n";
+      const allCharsSet = new Set();
       vaultComics.forEach(function(c) {
-        csv += '"' + (c.title||'') + '","' + (c.issue||'') + '","' + (c.volume||'') + '","' + (c.publisher||'') + '","' + (c.writer||'') + '","' + (c.artist||'') + '","' + (c.overallRating||'') + '","' + (c.ratingCover||'') + '","' + (c.ratingArt||'') + '","' + (c.ratingStory||'') + '","' + (c.isKey ? 'Yes' : 'No') + '","' + (c.dateLogged||'') + '","' + (c.synopsis||'').replace(/"/g, '""') + '"\n';
+        getComicCharacters(c).forEach(function(ch) {
+          allCharsSet.add(ch);
+        });
       });
-      const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
-      const anchor = document.createElement('a');
-      anchor.setAttribute("href", dataStr);
-      anchor.setAttribute("download", "panelvault_export_" + new Date().toISOString().split('T')[0] + ".csv");
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-    };
+      const chars = Array.from(allCharsSet).sort();
+      const arcs = Array.from(new Set(vaultComics.map(function(c) { return c.storyArc; }).filter(Boolean))).sort();
 
-    window.clearAllData = function() {
-      saveComicsToStorage([]);
-      window.closeBackupModal();
-    };
+      charSelect.innerHTML = '<option value="ALL">All Characters</option>' + chars.map(function(ch) {
+        return '<option value="' + ch + '" ' + (currChar === ch ? 'selected' : '') + '>' + ch + '</option>';
+      }).join('');
 
-    window.restoreDefaults = function() {
-      saveComicsToStorage(SAMPLE_COMICS);
-      window.closeBackupModal();
-    };
-
-    window.setViewMode = function(mode) {
-      currentViewMode = mode;
-      document.getElementById('view-grid-btn').className = mode === 'GRID' ? 'px-2.5 py-1 rounded text-xs bg-comic-gold text-slate-950 font-bold' : 'px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white';
-      document.getElementById('view-list-btn').className = mode === 'LIST' ? 'px-2.5 py-1 rounded text-xs bg-comic-gold text-slate-950 font-bold' : 'px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white';
-      window.renderVault();
-    };
+      arcSelect.innerHTML = '<option value="ALL">All Story Arcs</option>' + arcs.map(function(a) {
+        return '<option value="' + a + '" ' + (currArc === a ? 'selected' : '') + '>' + a + '</option>';
+      }).join('');
+    }
 
     window.renderVault = function() {
+      updateFilterDropdowns();
+
       const searchInput = document.getElementById('search-input');
       const search = searchInput ? searchInput.value.toLowerCase() : '';
       
+      const charSelect = document.getElementById('character-filter');
+      const charFilter = charSelect ? charSelect.value : 'ALL';
+
+      const arcSelect = document.getElementById('arc-filter');
+      const arcFilter = arcSelect ? arcSelect.value : 'ALL';
+
       const pubSelect = document.getElementById('publisher-filter');
       const pubFilter = pubSelect ? pubSelect.value : 'ALL';
       
@@ -721,16 +835,20 @@
       let filtered = vaultComics.filter(function(c) {
         const matchesSearch = (c.title || '').toLowerCase().includes(search) ||
                               (c.issue || '').toLowerCase().includes(search) ||
+                              (c.characterFamily || '').toLowerCase().includes(search) ||
+                              (c.storyArc || '').toLowerCase().includes(search) ||
                               (c.synopsis || '').toLowerCase().includes(search) ||
                               (c.writer || '').toLowerCase().includes(search) ||
                               (c.artist || '').toLowerCase().includes(search);
+        const matchesChar = charFilter === 'ALL' || getComicCharacters(c).includes(charFilter);
+        const matchesArc = arcFilter === 'ALL' || c.storyArc === arcFilter;
         const matchesPub = pubFilter === 'ALL' || c.publisher === pubFilter;
         const ratingNum = parseFloat(c.overallRating || 0);
         const matchesRate = rateFilter === 'ALL' ||
                             (rateFilter === '5' && ratingNum === 5) ||
                             (rateFilter === '4' && ratingNum >= 4) ||
                             (rateFilter === '3' && ratingNum >= 3);
-        return matchesSearch && matchesPub && matchesRate;
+        return matchesSearch && matchesChar && matchesArc && matchesPub && matchesRate;
       });
 
       // Sort
@@ -811,9 +929,9 @@
             '<div class="relative h-64 overflow-hidden bg-slate-950 cursor-pointer" onclick="openDetailModal(\'' + c.id + '\')">' +
               '<img src="' + c.coverUrl + '" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">' +
               '<div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80"></div>' +
-              '<div class="absolute top-3 left-3 flex items-center gap-1.5">' +
+              '<div class="absolute top-3 left-3 flex flex-col gap-1 items-start max-w-[80%]">' +
                 '<span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-slate-900/90 text-comic-gold border border-slate-700">' + c.publisher + '</span>' +
-                (c.isKey ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-comic-gold text-slate-950"><i class="fa-solid fa-key mr-0.5"></i>Key</span>' : '') +
+                (c.characterFamily ? '<div class="flex flex-wrap gap-1">' + getComicCharacters(c).map(function(ch) { return '<span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-pink-950/90 text-pink-300 border border-pink-800/80">' + ch + '</span>'; }).join('') + '</div>' : '') +
               '</div>' +
               '<div class="absolute bottom-3 right-3 bg-slate-900/90 border border-amber-500/40 px-2.5 py-1 rounded-lg text-comic-gold text-xs font-black">' +
                 c.overallRating + ' ★' +
@@ -826,7 +944,7 @@
                   '<h3 class="font-black text-sm text-white group-hover:text-comic-accent transition cursor-pointer" onclick="openDetailModal(\'' + c.id + '\')">' + c.title + '</h3>' +
                   '<span class="text-xs font-bold text-comic-gold">' + c.issue + '</span>' +
                 '</div>' +
-                '<p class="text-[11px] text-slate-400 mb-2">' + (c.volume || 'Single Issue') + '</p>' +
+                (c.storyArc ? '<p class="text-[11px] text-blue-400 font-semibold mb-2 truncate"><i class="fa-solid fa-book-bookmark mr-1"></i>' + c.storyArc + '</p>' : '<p class="text-[11px] text-slate-400 mb-2">' + (c.volume || 'Single Issue') + '</p>') +
 
                 '<div class="grid grid-cols-3 gap-1 text-[10px] bg-comic-bg p-2 rounded-lg border border-comic-border text-center mb-3">' +
                   '<div>Cover: <b class="text-pink-400">' + (c.ratingCover || c.overallRating) + '★</b></div>' +
@@ -854,11 +972,12 @@
             '<div class="flex items-center gap-3.5 overflow-hidden cursor-pointer" onclick="openDetailModal(\'' + c.id + '\')">' +
               '<img src="' + c.coverUrl + '" class="w-12 h-16 rounded object-cover border border-slate-700 flex-shrink-0">' +
               '<div class="overflow-hidden">' +
-                '<div class="flex items-center gap-2 mb-0.5">' +
+                '<div class="flex flex-wrap items-center gap-2 mb-0.5">' +
                   '<span class="text-[10px] font-bold px-1.5 py-0.2 rounded uppercase bg-slate-800 text-comic-gold">' + c.publisher + '</span>' +
+                  getComicCharacters(c).map(function(ch) { return '<span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-pink-950 text-pink-300">' + ch + '</span>'; }).join('') +
                   '<h3 class="font-bold text-sm text-white truncate">' + c.title + ' <span class="text-comic-gold">' + c.issue + '</span></h3>' +
                 '</div>' +
-                '<p class="text-xs text-slate-400 truncate">' + (c.synopsis || 'No review notes logged') + '</p>' +
+                '<p class="text-xs text-slate-400 truncate"><span class="text-blue-400 font-semibold">' + (c.storyArc || 'Single Run') + '</span> — ' + (c.synopsis || 'No review notes logged') + '</p>' +
               '</div>' +
             '</div>' +
 
@@ -875,6 +994,182 @@
           '</div>';
         }).join('');
       }
+    };
+
+    window.renderStoryArcs = function() {
+      const container = document.getElementById('arcs-container');
+      if (!container) return;
+
+      const groupedArcs = {};
+      vaultComics.forEach(function(c) {
+        const arc = c.storyArc || 'Single Issue / Independent';
+        if (!groupedArcs[arc]) groupedArcs[arc] = [];
+        groupedArcs[arc].push(c);
+      });
+
+      const arcKeys = Object.keys(groupedArcs).sort();
+
+      if (!arcKeys.length) {
+        container.innerHTML = '<div class="text-center py-12 text-slate-400 text-xs">No story arcs found in collection.</div>';
+        return;
+      }
+
+      container.innerHTML = arcKeys.map(function(arcName) {
+        const comics = groupedArcs[arcName];
+        const count = comics.length;
+        const avgOverall = (comics.reduce(function(a,c){ return a + parseFloat(c.overallRating||0); }, 0) / count).toFixed(1);
+        const avgCover = (comics.reduce(function(a,c){ return a + parseFloat(c.ratingCover||c.overallRating||0); }, 0) / count).toFixed(1);
+        const avgArt = (comics.reduce(function(a,c){ return a + parseFloat(c.ratingArt||c.overallRating||0); }, 0) / count).toFixed(1);
+        const avgStory = (comics.reduce(function(a,c){ return a + parseFloat(c.ratingStory||c.overallRating||0); }, 0) / count).toFixed(1);
+
+        return '<div class="bg-comic-card border border-comic-border rounded-2xl p-5 shadow-xl">' +
+          '<div class="flex flex-col md:flex-row md:items-center justify-between border-b border-comic-border pb-3 mb-4 gap-3">' +
+            '<div>' +
+              '<h3 class="text-lg font-black text-white flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-comic-gold"></i> ' + arcName + '</h3>' +
+              '<p class="text-xs text-slate-400">' + count + ' issue(s) in storyline</p>' +
+            '</div>' +
+            '<div class="flex items-center gap-3 bg-comic-bg p-2 rounded-xl border border-comic-border text-xs">' +
+              '<div>Overall: <b class="text-comic-gold text-sm">' + avgOverall + ' ★</b></div>' +
+              '<div class="border-l border-comic-border pl-3">🎨 Cover: <b class="text-pink-400">' + avgCover + '</b></div>' +
+              '<div>✏️ Art: <b class="text-blue-400">' + avgArt + '</b></div>' +
+              '<div>📖 Story: <b class="text-emerald-400">' + avgStory + '</b></div>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">' +
+            comics.map(function(c) {
+              return '<div onclick="openDetailModal(\'' + c.id + '\')" class="bg-comic-bg p-2 rounded-xl border border-comic-border hover:border-comic-accent transition cursor-pointer text-center group">' +
+                '<img src="' + c.coverUrl + '" class="w-full h-32 object-cover rounded-lg mb-2 group-hover:scale-105 transition">' +
+                '<h4 class="text-xs font-bold text-white truncate">' + c.title + '</h4>' +
+                '<p class="text-[11px] text-comic-gold font-black">' + c.issue + ' • ' + c.overallRating + '★</p>' +
+              '</div>';
+            }).join('') +
+          '</div>' +
+        '</div>';
+      }).join('');
+    };
+
+    window.renderAnalytics = function() {
+      const container = document.getElementById('analytics-container');
+      if (!container) return;
+
+      function calcCharacterStats() {
+        const groups = {};
+        vaultComics.forEach(function(c) {
+          const chars = getComicCharacters(c);
+          chars.forEach(function(ch) {
+            if (!groups[ch]) groups[ch] = [];
+            groups[ch].push(c);
+          });
+        });
+
+        return Object.keys(groups).map(function(g) {
+          const items = groups[g];
+          const count = items.length;
+          return {
+            name: g,
+            count: count,
+            avgOverall: (items.reduce(function(a,c){ return a + parseFloat(c.overallRating||0); },0)/count).toFixed(1),
+            avgCover: (items.reduce(function(a,c){ return a + parseFloat(c.ratingCover||c.overallRating||0); },0)/count).toFixed(1),
+            avgArt: (items.reduce(function(a,c){ return a + parseFloat(c.ratingArt||c.overallRating||0); },0)/count).toFixed(1),
+            avgStory: (items.reduce(function(a,c){ return a + parseFloat(c.ratingStory||c.overallRating||0); },0)/count).toFixed(1)
+          };
+        }).sort(function(a,b){ return parseFloat(b.avgOverall) - parseFloat(a.avgOverall); });
+      }
+
+      function calcGroupStats(key) {
+        const groups = {};
+        vaultComics.forEach(function(c) {
+          const val = c[key] || 'Uncategorized';
+          if (!groups[val]) groups[val] = [];
+          groups[val].push(c);
+        });
+
+        return Object.keys(groups).map(function(g) {
+          const items = groups[g];
+          const count = items.length;
+          return {
+            name: g,
+            count: count,
+            avgOverall: (items.reduce(function(a,c){ return a + parseFloat(c.overallRating||0); },0)/count).toFixed(1),
+            avgCover: (items.reduce(function(a,c){ return a + parseFloat(c.ratingCover||c.overallRating||0); },0)/count).toFixed(1),
+            avgArt: (items.reduce(function(a,c){ return a + parseFloat(c.ratingArt||c.overallRating||0); },0)/count).toFixed(1),
+            avgStory: (items.reduce(function(a,c){ return a + parseFloat(c.ratingStory||c.overallRating||0); },0)/count).toFixed(1)
+          };
+        }).sort(function(a,b){ return parseFloat(b.avgOverall) - parseFloat(a.avgOverall); });
+      }
+
+      const charStats = calcCharacterStats();
+      const seriesStats = calcGroupStats('title');
+      const arcStats = calcGroupStats('storyArc');
+
+      function buildTable(title, icon, data) {
+        return '<div class="bg-comic-card border border-comic-border rounded-2xl p-5 shadow-xl">' +
+          '<h3 class="text-base font-black text-white mb-4 flex items-center gap-2">' + icon + ' ' + title + ' Breakdown</h3>' +
+          '<div class="overflow-x-auto">' +
+            '<table class="w-full text-left text-xs text-slate-300">' +
+              '<thead class="bg-comic-bg text-slate-400 uppercase text-[10px] font-bold border-b border-comic-border">' +
+                '<tr>' +
+                  '<th class="p-2.5">Name</th>' +
+                  '<th class="p-2.5">Issues</th>' +
+                  '<th class="p-2.5 text-pink-400">🎨 Cover Avg</th>' +
+                  '<th class="p-2.5 text-blue-400">✏️ Art Avg</th>' +
+                  '<th class="p-2.5 text-emerald-400">📖 Story Avg</th>' +
+                  '<th class="p-2.5 text-comic-gold">Overall Avg</th>' +
+                '</tr>' +
+              '</thead>' +
+              '<tbody class="divide-y divide-comic-border/50">' +
+                data.map(function(row) {
+                  return '<tr class="hover:bg-slate-900/50">' +
+                    '<td class="p-2.5 font-bold text-white">' + row.name + '</td>' +
+                    '<td class="p-2.5 text-slate-400">' + row.count + '</td>' +
+                    '<td class="p-2.5 font-bold text-pink-400">' + row.avgCover + ' ★</td>' +
+                    '<td class="p-2.5 font-bold text-blue-400">' + row.avgArt + ' ★</td>' +
+                    '<td class="p-2.5 font-bold text-emerald-400">' + row.avgStory + ' ★</td>' +
+                    '<td class="p-2.5 font-black text-comic-gold">' + row.avgOverall + ' ★</td>' +
+                  '</tr>';
+                }).join('') +
+              '</tbody>' +
+            '</table>' +
+          '</div>' +
+        '</div>';
+      }
+
+      container.innerHTML = 
+        buildTable('Character / Team Breakdown', '<i class="fa-solid fa-user-ninja text-pink-400"></i>', charStats) +
+        buildTable('Series / Comic Run', '<i class="fa-solid fa-book-open text-comic-accent"></i>', seriesStats) +
+        buildTable('Story Arc & Event', '<i class="fa-solid fa-book-bookmark text-comic-gold"></i>', arcStats);
+    };
+
+    window.exportCSV = function() {
+      let csv = "Title,Issue,Volume,Publisher,CharacterFamily,StoryArc,Writer,Artist,OverallRating,CoverRating,ArtRating,StoryRating,KeyIssue,DateLogged,Synopsis\n";
+      vaultComics.forEach(function(c) {
+        csv += '"' + (c.title||'') + '","' + (c.issue||'') + '","' + (c.volume||'') + '","' + (c.publisher||'') + '","' + (c.characterFamily||'') + '","' + (c.storyArc||'') + '","' + (c.writer||'') + '","' + (c.artist||'') + '","' + (c.overallRating||'') + '","' + (c.ratingCover||'') + '","' + (c.ratingArt||'') + '","' + (c.ratingStory||'') + '","' + (c.isKey ? 'Yes' : 'No') + '","' + (c.dateLogged||'') + '","' + (c.synopsis||'').replace(/"/g, '""') + '"\n';
+      });
+      const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+      const anchor = document.createElement('a');
+      anchor.setAttribute("href", dataStr);
+      anchor.setAttribute("download", "panelvault_export_" + new Date().toISOString().split('T')[0] + ".csv");
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    };
+
+    window.clearAllData = function() {
+      saveComicsToStorage([]);
+      window.closeBackupModal();
+    };
+
+    window.restoreDefaults = function() {
+      saveComicsToStorage(SAMPLE_COMICS);
+      window.closeBackupModal();
+    };
+
+    window.setViewMode = function(mode) {
+      currentViewMode = mode;
+      document.getElementById('view-grid-btn').className = mode === 'GRID' ? 'px-2.5 py-1 rounded text-xs bg-comic-gold text-slate-950 font-bold' : 'px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white';
+      document.getElementById('view-list-btn').className = mode === 'LIST' ? 'px-2.5 py-1 rounded text-xs bg-comic-gold text-slate-950 font-bold' : 'px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white';
+      window.renderVault();
     };
 
     // --- AUTH STATE LISTENER & INITIALIZATION ---
