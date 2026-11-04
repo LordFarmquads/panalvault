@@ -392,6 +392,24 @@
 
   <!-- Main JavaScript Logic -->
   <script>
+    // --- FIREBASE INITIALIZATION ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyCkQlrIZNulCIySAu-XTozRLI4xjGjMXNI",
+      authDomain: "panalvault.firebaseapp.com",
+      databaseURL: "https://panalvault-default-rtdb.firebaseio.com",
+      projectId: "panalvault",
+      storageBucket: "panalvault.firebasestorage.app",
+      messagingSenderId: "360997151189",
+      appId: "1:360997151189:web:5355bfe23a8148bee49d5c",
+      measurementId: "G-86JSF55T1J"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const db = firebase.database();
+
     // --- GLOBAL VARIABLES & STATE ---
     let currentUser = null;
     let vaultComics = [];
