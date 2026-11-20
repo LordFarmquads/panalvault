@@ -400,6 +400,14 @@
           <button type="button" onclick="exportCSV()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold rounded-lg border border-slate-700"><i class="fa-solid fa-file-csv mr-1"></i> CSV</button>
         </div>
 
+        <div class="p-3 bg-comic-bg rounded-xl border border-comic-border flex items-center justify-between">
+          <div>
+            <h4 class="text-xs font-bold text-white">Optimize Stored Cover Images</h4>
+            <p class="text-[11px] text-slate-400">Shrink previously uploaded covers to free up browser & cloud space</p>
+          </div>
+          <button type="button" id="optimize-covers-btn" onclick="optimizeExistingCovers()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-pink-400 text-xs font-bold rounded-lg border border-slate-700"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Optimize</button>
+        </div>
+
         <div class="pt-3 border-t border-comic-border flex items-center justify-between gap-2">
           <button type="button" onclick="restoreDefaults()" class="text-xs text-slate-400 hover:text-white underline">Restore Sample Library</button>
           <button type="button" onclick="clearAllData()" class="text-xs text-red-400 hover:text-red-300 font-semibold"><i class="fa-solid fa-trash mr-1"></i> Clear All Data</button>
@@ -407,6 +415,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Non-blocking Toast Banner -->
+  <div id="toast-banner" class="fixed bottom-5 right-5 z-50 hidden max-w-sm bg-comic-card border border-comic-border text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5"></div>
 
   <!-- Main JavaScript Logic -->
   <script>
@@ -518,7 +529,9 @@
     function getLocalComics() {
       const stored = localStorage.getItem('panelvault_comics_v3');
       if (!stored) {
-        localStorage.setItem('panelvault_comics_v3', JSON.stringify(SAMPLE_COMICS));
+        try {
+          localStorage.setItem('panelvault_comics_v3', JSON.stringify(SAMPLE_COMICS));
+        } catch (e) {}
         return SAMPLE_COMICS;
       }
       try {
@@ -529,15 +542,54 @@
       }
     }
 
-    function saveComicsToStorage(comics) {
-      vaultComics = comics;
+    window.showToast = function(message, isWarning) {
+      const toast = document.getElementById('toast-banner');
+      if (!toast) return;
+      toast.className = 'fixed bottom-5 right-5 z-50 max-w-sm text-xs font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 border ' +
+        (isWarning
+          ? 'bg-amber-950/95 border-amber-600 text-amber-200'
+          : 'bg-comic-card border-emerald-600/60 text-emerald-300');
+      toast.innerHTML = '<i class="fa-solid ' + (isWarning ? 'fa-triangle-exclamation text-comic-gold' : 'fa-circle-check text-emerald-400') + '"></i><span>' + message + '</span>';
+      toast.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(function() {
+        toast.classList.add('hidden');
+      }, 4500);
+    };
+
+    function tryCacheLocally(comics) {
       try {
         localStorage.setItem('panelvault_comics_v3', JSON.stringify(comics));
+        return true;
       } catch (e) {
-        alert("Browser storage is full! Please export a JSON backup and delete large local images or sign in with Google for cloud storage.");
+        // If full, cache metadata without large base64 cover strings so browser storage never crashes
+        try {
+          const lightCopy = comics.map(function(c) {
+            if (c.coverUrl && c.coverUrl.startsWith('data:image')) {
+              return Object.assign({}, c, { coverUrl: 'https://via.placeholder.com/400x600/1e293b/94a3b8?text=Cloud+Cover' });
+            }
+            return c;
+          });
+          localStorage.setItem('panelvault_comics_v3', JSON.stringify(lightCopy));
+        } catch (err) {}
+        return false;
       }
+    }
+
+    function saveComicsToStorage(comics) {
+      vaultComics = comics;
+      const cachedFull = tryCacheLocally(comics);
+
       if (currentUser && db) {
-        db.ref('users/' + currentUser.uid + '/comics').set(comics);
+        db.ref('users/' + currentUser.uid + '/comics').set(comics)
+          .then(function() {
+            window.showToast('Saved & synced to cloud!', false);
+          })
+          .catch(function(err) {
+            window.showToast('Cloud sync error: ' + err.message, true);
+          });
+      } else if (!cachedFull) {
+        window.showToast('Browser cache limit reached. Sign in with Google or run Backup & Tools > Optimize.', true);
       }
       refreshActiveView();
     }
@@ -637,7 +689,7 @@
             const data = snapshot.val();
             if (data !== null) {
               vaultComics = Array.isArray(data) ? data : Object.values(data);
-              localStorage.setItem('panelvault_comics_v3', JSON.stringify(vaultComics));
+              tryCacheLocally(vaultComics);
             } else {
               vaultComics = getLocalComics();
               db.ref('users/' + user.uid + '/comics').set(vaultComics);
@@ -1255,20 +1307,11 @@
       document.getElementById('comic-modal').classList.add('hidden');
     };
 
-    window.handleFileUpload = function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const btnText = document.getElementById('upload-btn-text');
-      if (btnText) btnText.textContent = 'Compressing...';
-
-      const reader = new FileReader();
-      reader.onload = function(event) {
+    function compressDataUrl(dataUrl, maxWidth, maxHeight, quality) {
+      return new Promise(function(resolve) {
         const img = new Image();
         img.onload = function() {
           const canvas = document.createElement('canvas');
-          const maxWidth = 600;
-          const maxHeight = 900;
           let width = img.width;
           let height = img.height;
 
@@ -1284,18 +1327,64 @@
             }
           }
 
-          canvas.width = width;
-          canvas.height = height;
+          canvas.width = Math.round(width);
+          canvas.height = Math.round(height);
           const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = function() {
+          resolve(dataUrl);
+        };
+        img.src = dataUrl;
+      });
+    }
 
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+    window.handleFileUpload = function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const btnText = document.getElementById('upload-btn-text');
+      if (btnText) btnText.textContent = 'Compressing...';
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        compressDataUrl(event.target.result, 360, 540, 0.65).then(function(compressedDataUrl) {
           document.getElementById('input-cover').value = compressedDataUrl;
           if (btnText) btnText.textContent = 'Upload';
-        };
-        img.src = event.target.result;
+        });
       };
       reader.readAsDataURL(file);
+    };
+
+    window.optimizeExistingCovers = async function() {
+      const btn = document.getElementById('optimize-covers-btn');
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Working...';
+
+      let optimizedCount = 0;
+      const updated = [];
+
+      for (let i = 0; i < vaultComics.length; i++) {
+        const c = vaultComics[i];
+        if (c.coverUrl && c.coverUrl.startsWith('data:image') && c.coverUrl.length > 45000) {
+          const smaller = await compressDataUrl(c.coverUrl, 360, 540, 0.65);
+          updated.push(Object.assign({}, c, { coverUrl: smaller }));
+          optimizedCount++;
+        } else {
+          updated.push(c);
+        }
+      }
+
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Optimize';
+
+      if (optimizedCount > 0) {
+        saveComicsToStorage(updated);
+        closeBackupModal();
+        window.showToast('Optimized ' + optimizedCount + ' cover image(s) to save storage!', false);
+      } else {
+        closeBackupModal();
+        window.showToast('All cover images are already optimized!', false);
+      }
     };
 
     window.saveComic = function(e) {
